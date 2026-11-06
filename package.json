@@ -1,0 +1,23 @@
+{
+  "name": "novafix-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma web de gestión y trazabilidad en tiempo real de órdenes de servicio para talleres de reparación de cómputo y dispositivos móviles.",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=26.0.0",
+    "pnpm": ">=12.0.0"
+  },
+  "scripts": {
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend start",
+    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "db:generate": "pnpm --filter backend prisma:generate",
+    "db:migrate": "pnpm --filter backend prisma:migrate",
+    "db:validate": "pnpm --filter backend prisma:validate"
+  }
+}

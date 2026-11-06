@@ -1,0 +1,852 @@
+/* ==========================================================================
+   NOVAFIX — ARCHITECTURAL LAYOUT, SHELL, HAIRLINE CARDS & ENTRY ANIMATIONS
+   ========================================================================== */
+
+.nf-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .nf-container {
+    padding-inline: var(--space-12);
+  }
+}
+
+.nf-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-canvas);
+}
+
+.nf-main {
+  flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Architectural Header & Footer Shell
+   -------------------------------------------------------------------------- */
+.nf-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--color-bg-canvas);
+  border-bottom: var(--border-hairline);
+}
+
+.nf-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 4.5rem;
+  padding-block: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.nf-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nf-brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-mono);
+}
+
+.nf-brand__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nf-brand__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-primary);
+}
+
+.nf-brand__meta {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-mono);
+}
+
+.nf-footer {
+  border-top: var(--border-hairline);
+  padding-block: var(--space-8);
+  background-color: var(--color-bg-surface);
+}
+
+.nf-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Architectural Hero & Grid Layout Primitives
+   -------------------------------------------------------------------------- */
+.nf-hero {
+  padding-block: var(--space-16) var(--space-20);
+  border-bottom: var(--border-hairline);
+}
+
+.nf-hero__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .nf-hero__grid {
+    grid-template-columns: 1.35fr 0.9fr;
+    gap: var(--space-16);
+  }
+}
+
+.nf-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.nf-hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.nf-hero__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-mono);
+}
+
+.nf-hero__title {
+  font-size: var(--text-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-tight);
+  color: var(--color-text-primary);
+  max-width: 16ch;
+}
+
+.nf-hero__lead {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  max-width: 58ch;
+}
+
+.nf-hero__cta-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.nf-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-6);
+}
+
+/* --------------------------------------------------------------------------
+   Architectural Hairline Surfaces (1px solid, zero box-shadow)
+   -------------------------------------------------------------------------- */
+.nf-card {
+  background-color: var(--color-bg-surface);
+  border: var(--border-hairline);
+  padding: var(--space-8);
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard);
+}
+
+.nf-card--interactive:hover {
+  border-color: var(--color-border-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons (Monochromatic Color Inversion on Hover)
+   -------------------------------------------------------------------------- */
+.nf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-normal);
+  border: var(--border-strong);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.nf-btn--primary {
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-strong);
+}
+
+.nf-btn--primary:hover:not(:disabled) {
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+}
+
+.nf-btn--ghost {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: var(--border-hairline);
+}
+
+.nf-btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Technical Monospace Pills & Status Tags (Strict Monochrome)
+   -------------------------------------------------------------------------- */
+.nf-mono-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  border: var(--border-hairline);
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+}
+
+.nf-mono-tag--inverted {
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Modern Entry Animations (@starting-style + Angular animate.enter)
+   Compositor-only properties: opacity and translate
+   -------------------------------------------------------------------------- */
+.nf-enter {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity var(--duration-entry) var(--ease-out-expo),
+    translate var(--duration-entry) var(--ease-out-expo);
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+.nf-enter-active {
+  animation: nf-fade-slide-in var(--duration-entry) var(--ease-out-expo) both;
+}
+
+@keyframes nf-fade-slide-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-enter {
+    @starting-style {
+      opacity: 0;
+      translate: 0 0;
+    }
+  }
+
+  @keyframes nf-fade-slide-in {
+    from {
+      opacity: 0;
+      translate: 0 0;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Architectural Forms & Input Controls (WCAG AA + Gestalt Proximity)
+   -------------------------------------------------------------------------- */
+.nf-auth-section {
+  padding-block: var(--space-12) var(--space-20);
+}
+
+.nf-auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+}
+
+@media (min-width: 960px) {
+  .nf-auth-grid {
+    grid-template-columns: 1fr 1.15fr;
+  }
+}
+
+.nf-auth-aside {
+  padding: var(--space-10);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-10);
+  background-color: var(--color-bg-subtle);
+  border-bottom: var(--border-hairline);
+}
+
+@media (min-width: 960px) {
+  .nf-auth-aside {
+    padding: var(--space-12);
+    border-bottom: none;
+    border-right: var(--border-hairline);
+  }
+}
+
+.nf-auth-panel {
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background-color: var(--color-bg-canvas);
+}
+
+@media (min-width: 768px) {
+  .nf-auth-panel {
+    padding: var(--space-12);
+  }
+}
+
+.nf-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.nf-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.nf-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nf-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.nf-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-primary);
+}
+
+.nf-required-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-mono);
+}
+
+.nf-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.nf-input-group:focus-within {
+  border-color: var(--color-border-strong);
+}
+
+.nf-input-group--invalid {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-bg-subtle);
+}
+
+.nf-input {
+  width: 100%;
+  min-height: 3rem; /* 48px minimum tap target */
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base); /* 16px prevents iOS zoom */
+  color: var(--color-text-primary);
+  background: transparent;
+  outline: none;
+}
+
+@media (pointer: coarse) {
+  .nf-input {
+    min-height: 3.25rem; /* 52px on touch devices */
+  }
+}
+
+.nf-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.nf-password-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding-inline: var(--space-3);
+  color: var(--color-text-secondary);
+  border-left: var(--border-hairline);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.nf-password-toggle:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background-color: var(--color-bg-inverse);
+}
+
+.nf-field-hint {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.nf-field-error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-primary);
+  padding-top: var(--space-1);
+}
+
+.nf-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-strong);
+  background-color: var(--color-bg-subtle);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Native Modal Dialog (<dialog>) — Top-Layer & Scroll Containment
+   -------------------------------------------------------------------------- */
+.nf-dialog {
+  padding: 0;
+  border: var(--border-strong);
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-body);
+  max-inline-size: min(92vw, 34rem);
+  inline-size: 100%;
+  margin: auto;
+}
+
+.nf-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* MANDATORY: stop scroll gestures inside modal or over backdrop from chaining to page */
+.nf-dialog:modal {
+  overscroll-behavior: contain;
+}
+
+.nf-dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: light-dark(rgba(17, 17, 17, 0.55), rgba(0, 0, 0, 0.72));
+}
+
+.nf-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: var(--border-hairline);
+  background-color: var(--color-bg-subtle);
+}
+
+.nf-dialog__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.nf-dialog__body {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.nf-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Radio Preset Selector Cards & Checkbox Permission Matrix
+   -------------------------------------------------------------------------- */
+.nf-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-3);
+}
+
+.nf-preset-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.nf-preset-option:hover {
+  border-color: var(--color-border-strong);
+}
+
+.nf-preset-option--selected {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-bg-subtle);
+}
+
+.nf-preset-option__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.nf-preset-option__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.nf-preset-option__summary {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+}
+
+.nf-perm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-2);
+}
+
+.nf-perm-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+  cursor: pointer;
+  font-size: var(--text-xs);
+}
+
+.nf-perm-item--active {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-bg-subtle);
+}
+
+.nf-perm-item__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nf-perm-item__label {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.nf-perm-item__code {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Data Table (@container + Sticky Headers)
+   -------------------------------------------------------------------------- */
+.nf-table-region {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(42rem, 80vh);
+  container-type: inline-size;
+  border: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+}
+
+.nf-table {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-sm);
+  --label-2: 'Área';
+  --label-3: 'Permisos';
+  --label-4: 'Disponibilidad';
+  --label-5: 'Cuenta';
+  --label-6: 'Acciones';
+}
+
+.nf-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background-color: var(--color-bg-subtle);
+}
+
+.nf-table th,
+.nf-table td {
+  padding: var(--space-4) var(--space-5);
+  text-align: start;
+  border-block-end: var(--border-hairline);
+  vertical-align: middle;
+}
+
+.nf-table thead th {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-mono);
+  color: var(--color-text-muted);
+}
+
+.nf-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background-color: var(--color-bg-surface);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+@container (width < 680px) {
+  .nf-table,
+  .nf-table thead,
+  .nf-table tbody,
+  .nf-table tr,
+  .nf-table th,
+  .nf-table td {
+    display: block;
+  }
+
+  .nf-table thead {
+    /* MANDATORY: Hide column header from layout and screen readers in stacked mode */
+    display: none;
+  }
+
+  .nf-table tr {
+    margin-block-end: var(--space-4);
+    border-block-end: var(--border-strong);
+  }
+
+  .nf-table tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background-color: var(--color-bg-subtle);
+  }
+
+  .nf-table td::before {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    display: inline-block;
+    min-inline-size: 9.5rem;
+  }
+
+  .nf-table td:nth-child(2)::before {
+    content: var(--label-2) ': ';
+  }
+
+  .nf-table td:nth-child(3)::before {
+    content: var(--label-3) ': ';
+  }
+
+  .nf-table td:nth-child(4)::before {
+    content: var(--label-4) ': ';
+  }
+
+  .nf-table td:nth-child(5)::before {
+    content: var(--label-5) ': ';
+  }
+
+  .nf-table td:nth-child(6)::before {
+    content: var(--label-6) ': ';
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Architectural Timeline & Order Inspector Layout Primitives
+   -------------------------------------------------------------------------- */
+.nf-timeline {
+  display: flex;
+  flex-direction: column;
+  border-inline-start: var(--border-strong);
+  margin-inline-start: var(--space-3);
+  padding-inline-start: var(--space-5);
+  gap: var(--space-4);
+}
+
+.nf-timeline__entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-hairline);
+}
+
+.nf-timeline__entry::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(-1 * var(--space-5) - 4px);
+  inset-block-start: 6px;
+  inline-size: 7px;
+  block-size: 7px;
+  background-color: var(--color-bg-inverse);
+}
+
+.nf-timeline__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.nf-timeline__transition {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.nf-timeline__comment {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.ow-spec-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-hairline);
+}
+
+.ow-spec-cell dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.ow-spec-cell dd {
+  margin: 2px 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-primary);
+}
+
+.ow-issue-block {
+  padding: var(--space-4);
+  border: var(--border-hairline);
+  background-color: var(--color-bg-canvas);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ow-issue-block--highlight {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-bg-subtle);
+}
+
+.ow-issue-text {
+  font-size: var(--text-sm);
+}

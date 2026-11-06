@@ -1,0 +1,235 @@
+<!-- 1. RADICAL MINIMALIST HERO SECTION -->
+<section class="nf-hero" aria-labelledby="hero-heading">
+  <div class="nf-container nf-hero__grid">
+    <div class="nf-hero__content nf-enter">
+      <div class="nf-hero__eyebrow">
+        <span class="nf-mono-tag">
+          <app-icon name="wrench" [size]="13" />
+          <span>GESTIÓN DE SERVICIO TÉCNICO</span>
+        </span>
+        <span class="nf-hero__code">RECEPCIÓN · LABORATORIO · ENTREGA</span>
+      </div>
+
+      <h1 id="hero-heading" class="nf-hero__title">
+        Control total de tus órdenes de reparación.
+      </h1>
+
+      <p class="nf-hero__lead">
+        Coordina la recepción de equipos, el diagnóstico en taller y la entrega al cliente en un
+        solo lugar. Asigna órdenes automáticamente al personal disponible y ofrece seguimiento en
+        tiempo real a tus clientes.
+      </p>
+
+      @if (authService.currentUser(); as activeUser) {
+        <div class="nf-session-banner nf-enter">
+          <div class="nf-session-banner__meta">
+            <span class="nf-mono-tag nf-mono-tag--inverted">SESIÓN ACTIVA</span>
+            <span class="nf-session-banner__company">{{ activeUser.companyName }}</span>
+          </div>
+          <p class="nf-session-banner__details">
+            Usuario: <strong>{{ activeUser.fullName }}</strong> ({{ activeUser.email }}) · Área:
+            <strong>{{ activeUser.areaName ?? 'Administración General' }}</strong>
+          </p>
+
+          <div class="nf-hero__cta-group">
+            <a routerLink="/orders" class="nf-btn nf-btn--primary">
+              <app-icon name="wrench" [size]="15" />
+              <span>Ir a Órdenes de Servicio</span>
+            </a>
+
+            <a routerLink="/tracking" class="nf-btn nf-btn--ghost">
+              <app-icon name="search" [size]="15" />
+              <span>Consultar Orden por Código</span>
+            </a>
+
+            @if (authService.hasPermission('MANAGE_AREAS')) {
+              <a routerLink="/admin/areas" class="nf-btn nf-btn--ghost">
+                <app-icon name="layers" [size]="15" />
+                <span>Áreas de Trabajo</span>
+              </a>
+            }
+
+            @if (
+              authService.hasPermission('MANAGE_USERS') ||
+              authService.hasPermission('ORDER_VIEW_AREA')
+            ) {
+              <a routerLink="/admin/users" class="nf-btn nf-btn--ghost">
+                <app-icon name="user" [size]="15" />
+                <span>Personal</span>
+              </a>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="nf-hero__cta-group">
+          <a routerLink="/tracking" class="nf-btn nf-btn--primary">
+            <app-icon name="search" [size]="16" />
+            <span>Consultar Estado de mi Orden</span>
+          </a>
+
+          <a routerLink="/register-company" class="nf-btn nf-btn--ghost">
+            <app-icon name="building" [size]="16" />
+            <span>Registrar Empresa</span>
+          </a>
+
+          <a routerLink="/login" class="nf-btn nf-btn--ghost">
+            <app-icon name="lock" [size]="16" />
+            <span>Iniciar Sesión</span>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- Architectural Principles Column (1px Hairline Stack) -->
+    <aside class="nf-principles nf-enter" aria-label="Pilares de arquitectura">
+      @for (pillar of architecturalPrinciples(); track pillar.index) {
+        <div class="nf-principle-item">
+          <div class="nf-principle-item__top">
+            <span class="nf-principle-item__index">{{ pillar.index }}</span>
+            <span class="nf-principle-item__metric">{{ pillar.metric }}</span>
+          </div>
+          <h2 class="nf-principle-item__title">{{ pillar.title }}</h2>
+          <p class="nf-principle-item__desc">{{ pillar.description }}</p>
+        </div>
+      }
+    </aside>
+  </div>
+</section>
+
+<!-- 2. INTERACTIVE TELEMETRY & HAIRLINE CARDS SHOWCASE -->
+<section class="nf-showcase" aria-labelledby="showcase-heading">
+  <div class="nf-container">
+    <div class="nf-showcase__toolbar">
+      <div class="nf-showcase__heading-block">
+        <span class="nf-showcase__kicker">VISTA DEMOSTRATIVA DE TALLER</span>
+        <h2 id="showcase-heading" class="nf-showcase__title">
+          Monitor de Órdenes de Servicio
+        </h2>
+      </div>
+
+      <div class="nf-filter-bar" role="group" aria-label="Filtrar órdenes por etapa operativa">
+        <button
+          type="button"
+          class="nf-filter-pill"
+          [class.nf-filter-pill--active]="activeFilter() === 'ALL'"
+          (click)="setFilter('ALL')"
+        >
+          <span>Todas ({{ orders().length }})</span>
+        </button>
+        <button
+          type="button"
+          class="nf-filter-pill"
+          [class.nf-filter-pill--active]="activeFilter() === 'QUEUE'"
+          (click)="setFilter('QUEUE')"
+        >
+          <span>En Espera ({{ queueCount() }})</span>
+        </button>
+        <button
+          type="button"
+          class="nf-filter-pill"
+          [class.nf-filter-pill--active]="activeFilter() === 'ACTIVE_LAB'"
+          (click)="setFilter('ACTIVE_LAB')"
+        >
+          <span>En Taller ({{ activeLabCount() }})</span>
+        </button>
+        <button
+          type="button"
+          class="nf-filter-pill"
+          [class.nf-filter-pill--active]="activeFilter() === 'READY_DELIVERY'"
+          (click)="setFilter('READY_DELIVERY')"
+        >
+          <span>Listas ({{ readyCount() }})</span>
+        </button>
+      </div>
+
+      <div class="nf-search-box">
+        <app-icon name="search" [size]="16" />
+        <label for="order-search-input" class="visually-hidden">
+          Filtrar por código de orden, equipo o área
+        </label>
+        <input
+          id="order-search-input"
+          type="search"
+          class="nf-search-box__input"
+          placeholder="Buscar ORD-XXXXXX, equipo o área..."
+          [value]="searchQuery()"
+          (input)="updateSearch($event)"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        @if (searchQuery()) {
+          <button
+            type="button"
+            class="nf-search-box__clear"
+            (click)="clearSearch()"
+            aria-label="Limpiar búsqueda"
+          >
+            <app-icon name="x" [size]="14" />
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Selected Order Inspector Banner -->
+    @if (selectedOrder(); as inspected) {
+      <aside class="nf-inspector nf-enter" aria-label="Detalle rápido de la orden seleccionada">
+        <div class="nf-inspector__main">
+          <div class="nf-inspector__header">
+            <span class="nf-mono-tag nf-mono-tag--inverted">
+              INSPECCIÓN ACTIVA // {{ inspected.ticketCode }}
+            </span>
+            <span class="nf-inspector__customer">
+              <app-icon name="user" [size]="14" />
+              <span>{{ inspected.customerLabel }}</span>
+            </span>
+          </div>
+
+          <p class="nf-inspector__summary">
+            <strong>{{ inspected.deviceModel }}:</strong> {{ inspected.issueSummary }}
+          </p>
+        </div>
+
+        <div class="nf-inspector__actions">
+          <span class="nf-inspector__route">
+            {{ inspected.originArea }} → {{ inspected.targetArea }}
+          </span>
+          <button type="button" class="nf-btn nf-btn--ghost" (click)="closeInspector()">
+            <app-icon name="x" [size]="14" />
+            <span>Ocultar</span>
+          </button>
+        </div>
+      </aside>
+    }
+
+    <!-- 1px Hairline Cards Grid -->
+    @if (filteredOrders().length > 0) {
+      <div class="nf-cards-grid">
+        @for (order of filteredOrders(); track order.id) {
+          <app-order-preview-card
+            [item]="order"
+            [selected]="selectedOrder()?.id === order.id"
+            (inspectOrder)="handleInspectOrder($event)"
+          />
+        }
+      </div>
+    } @else {
+      <div class="nf-card nf-empty-state nf-enter">
+        <app-icon name="search" [size]="24" />
+        <h3 class="nf-empty-state__title">Sin coincidencias para el criterio actual</h3>
+        <p class="nf-empty-state__desc">
+          No se encontraron órdenes con el filtro o código especificado. Restablece los criterios
+          para visualizar todas las unidades operativas.
+        </p>
+        <button
+          type="button"
+          class="nf-btn nf-btn--primary"
+          (click)="setFilter('ALL'); clearSearch()"
+        >
+          <span>Restablecer Vista</span>
+        </button>
+      </div>
+    }
+  </div>
+</section>

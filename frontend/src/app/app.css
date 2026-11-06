@@ -1,0 +1,100 @@
+.nf-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.nf-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.nf-nav__link:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.nf-nav__link--active,
+.nf-nav__link--active:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  background-color: var(--color-bg-inverse);
+  border-color: var(--color-border-strong);
+}
+
+.nf-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.nf-notif-btn {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.nf-notif-btn--unread {
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-strong);
+}
+
+.nf-notif-btn__count {
+  font-weight: var(--weight-semibold);
+}
+
+.nf-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-hairline);
+  background-color: var(--color-bg-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.nf-user-pill__company {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.nf-user-pill__divider {
+  color: var(--color-text-muted);
+}
+
+.nf-user-pill__name {
+  color: var(--color-text-secondary);
+}
+
+.nf-user-pill__role {
+  padding: 2px var(--space-2);
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+}
+
+.nf-logout-btn,
+.nf-theme-toggle {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-mono);
+}

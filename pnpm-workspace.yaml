@@ -1,0 +1,19 @@
+packages:
+  - "backend"
+  - "frontend"
+
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - "@prisma/engines"
+  - "esbuild"
+  - "lmdb"
+  - "msgpackr-extract"
+  - "prisma"
+
+allowBuilds:
+  "@parcel/watcher": true
+  "@prisma/engines": true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
+  prisma: true

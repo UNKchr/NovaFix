@@ -1,0 +1,68 @@
+# ==============================================================================
+# NOVAFIX BACKEND - GITIGNORE
+# ==============================================================================
+
+# Dependencias y lockfile local (se usa el pnpm-lock.yaml raíz del monorepo)
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Variables de entorno y secretos (NUNCA versionar)
+.env
+.env.*
+*.env
+!.env.example
+!*.env.example
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Compilación, caché de TypeScript y cobertura
+dist/
+build/
+out/
+*.tsbuildinfo
+coverage/
+.nyc_output/
+.eslintcache
+tmp/
+temp/
+
+# Cliente autogenerado de Prisma v7
+/src/generated/prisma/
+src/generated/prisma/
+
+# Dumps de base de datos y persistencia Redis/Postgres
+*.sql.gz
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+dump.rdb
+appendonly.aof*
+appendonlydir/
+
+# Agentes IA y skills locales
+.agents/
+.agent/
+.gemini/
+.claude/
+.cursor/
+skills-lock.json
+
+# Logs y sistema
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo

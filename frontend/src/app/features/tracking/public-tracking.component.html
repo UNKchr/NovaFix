@@ -1,0 +1,326 @@
+<section class="nf-container trk-page nf-enter" aria-labelledby="trk-heading">
+  <!-- ====================================================================
+       1. ARCHITECTURAL HEADER & SEARCH BAR (GET /tracking?code=ORD-XXXXXX)
+       ==================================================================== -->
+  <header class="trk-header">
+    <div class="trk-header__intro">
+      <div class="nf-hero__eyebrow">
+        <span class="nf-mono-tag nf-mono-tag--inverted">
+          <app-icon name="search" [size]="13" />
+          <span>SEGUIMIENTO DE SERVICIO TÉCNICO</span>
+        </span>
+        <span class="nf-hero__code">CONSULTA DE ESTADO EN LÍNEA</span>
+      </div>
+
+      <h1 id="trk-heading" class="trk-title">
+        Consulta el Estado de tu Orden en Tiempo Real
+      </h1>
+
+      <p class="trk-subtitle">
+        Ingresa el código único de tu comprobante de servicio (por ejemplo,
+        <code>ORD-8F3K9A</code>) para conocer la etapa actual de tu equipo, el diagnóstico del
+        taller y el historial de avances.
+      </p>
+    </div>
+
+    <form
+      class="nf-card trk-search-card"
+      method="get"
+      action="/tracking"
+      [formGroup]="searchForm"
+      (ngSubmit)="onSubmitSearch()"
+      novalidate
+      aria-label="Buscador público por código de orden"
+    >
+      <div class="nf-field">
+        <div class="nf-label-row">
+          <label for="tracking-ticket-input" class="nf-label">
+            Código de Orden de Reparación
+          </label>
+          <span class="nf-required-badge">FORMATO OFICIAL: ORD-XXXXXX</span>
+        </div>
+
+        <div class="trk-search-row">
+          <div class="nf-input-group trk-input-box" [class.nf-input-group--invalid]="isFieldInvalid()">
+            <input
+              id="tracking-ticket-input"
+              type="search"
+              name="code"
+              class="nf-input trk-code-input"
+              formControlName="ticketCode"
+              placeholder="Ej. ORD-8F3K9A"
+              maxlength="12"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              (input)="normalizeTicketInput()"
+              [attr.aria-invalid]="isFieldInvalid()"
+              [attr.aria-describedby]="
+                isFieldInvalid() ? 'tracking-ticket-error' : 'tracking-ticket-hint'
+              "
+            />
+            @if (searchForm.controls.ticketCode.value) {
+              <button
+                type="button"
+                class="nf-password-toggle"
+                (click)="clearTrackingSearch()"
+                aria-label="Limpiar código de búsqueda"
+              >
+                <app-icon name="x" [size]="15" />
+              </button>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="nf-btn nf-btn--primary trk-submit-btn"
+            [disabled]="isSearching()"
+          >
+            <app-icon name="search" [size]="15" />
+            <span>{{ isSearching() ? 'Consultando...' : 'Consultar Orden' }}</span>
+          </button>
+        </div>
+
+        <span id="tracking-ticket-hint" class="nf-field-hint">
+          El código consta del prefijo <strong>ORD-</strong> seguido de 4 a 8 caracteres
+          alfanuméricos en mayúsculas.
+        </span>
+
+        @if (isFieldInvalid()) {
+          <span id="tracking-ticket-error" class="nf-field-error" role="alert">
+            <app-icon name="alert" [size]="14" />
+            <span>
+              Ingresa un código válido con formato ORD-XXXXXX (solo letras A-Z y números 0-9).
+            </span>
+          </span>
+        }
+      </div>
+    </form>
+  </header>
+
+  <!-- ====================================================================
+       2. ERROR BANNER (404 NOT FOUND / RATE LIMIT / FORMAT)
+       ==================================================================== -->
+  @if (errorMessage(); as errorText) {
+    <div class="nf-alert trk-alert nf-enter" role="alert" aria-live="polite">
+      <app-icon name="alert" [size]="18" />
+      <div class="trk-alert__content">
+        <strong>No fue posible recuperar la orden solicitada</strong>
+        <p>{{ errorText }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- ====================================================================
+       3. LIVE ORDER TRACKING RESULT & REDIS CACHE TELEMETRY
+       ==================================================================== -->
+  @if (lookupResult(); as result) {
+    <article class="trk-result nf-enter" aria-label="Expediente público de seguimiento">
+      <!-- 3A. Live Status Refresh Bar -->
+      <div class="trk-telemetry-bar" aria-live="polite">
+        <div class="trk-telemetry-bar__left">
+          <span class="nf-mono-tag nf-mono-tag--inverted">
+            <app-icon name="clock" [size]="12" />
+            <span>INFORMACIÓN EN TIEMPO REAL</span>
+          </span>
+
+          <span class="trk-telemetry-metric">
+            ÚLTIMA CONSULTA: <strong>{{ result.fetchedAt | date: 'HH:mm:ss' }}</strong>
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="nf-btn nf-btn--ghost trk-refresh-btn"
+          [disabled]="isSearching()"
+          (click)="refreshCurrentTicket()"
+        >
+          <app-icon name="refresh" [size]="13" />
+          <span>Actualizar Estado</span>
+        </button>
+      </div>
+
+      <!-- 3B. Main Order Summary Banner -->
+      <div class="nf-card trk-hero-card">
+        <div class="trk-hero-card__top">
+          <div class="trk-hero-card__badges">
+            <span class="nf-mono-tag nf-mono-tag--inverted">{{ result.order.ticketCode }}</span>
+            <span class="nf-mono-tag">{{ statusLabel(result.order.status) }}</span>
+            <span class="nf-mono-tag">{{ priorityLabel(result.order.priority) }}</span>
+          </div>
+
+          <span class="trk-company-pill">
+            <app-icon name="building" [size]="13" />
+            <span>{{ result.order.companyName }}</span>
+          </span>
+        </div>
+
+        <div class="trk-hero-card__main">
+          <h2 class="trk-device-title">{{ result.order.deviceModel }}</h2>
+          <p class="trk-client-meta">
+            Titular registrado: <strong>{{ result.order.clientName }}</strong> · Laboratorio
+            asignado: <strong>{{ result.order.targetAreaName }}</strong>
+          </p>
+        </div>
+
+        <!-- 3C. 5-Stage Architectural Lifecycle Progress Stepper -->
+        <div class="trk-stepper" role="list" aria-label="Progreso operativo de la orden">
+          @for (stage of lifecycleStages(); track stage.index) {
+            <div
+              class="trk-step"
+              role="listitem"
+              [class.trk-step--completed]="stage.state === 'COMPLETED'"
+              [class.trk-step--active]="stage.state === 'ACTIVE'"
+            >
+              <div class="trk-step__top">
+                <span class="trk-step__index">{{ stage.index }}</span>
+                <span class="trk-step__badge">
+                  @switch (stage.state) {
+                    @case ('COMPLETED') {
+                      COMPLETADO
+                    }
+                    @case ('ACTIVE') {
+                      ETAPA ACTUAL
+                    }
+                    @default {
+                      PENDIENTE
+                    }
+                  }
+                </span>
+              </div>
+              <strong class="trk-step__title">{{ stage.title }}</strong>
+              <span class="trk-step__subtitle">{{ stage.subtitle }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- 3D. Two-Column Details & Chronological Public Audit Trail -->
+      <div class="trk-details-grid">
+        <div class="nf-card trk-details-card">
+          <h3 class="trk-section-title">Ficha Técnica y Diagnóstico</h3>
+
+          <dl class="ow-spec-grid">
+            <div class="ow-spec-cell">
+              <dt>Empresa Responsable</dt>
+              <dd>{{ result.order.companyName }}</dd>
+            </div>
+            <div class="ow-spec-cell">
+              <dt>Área / Laboratorio</dt>
+              <dd>{{ result.order.targetAreaName }}</dd>
+            </div>
+            <div class="ow-spec-cell">
+              <dt>Fecha de Ingreso</dt>
+              <dd>{{ result.order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            <div class="ow-spec-cell">
+              <dt>Última Actualización</dt>
+              <dd>{{ result.order.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            @if (result.order.completedAt) {
+              <div class="ow-spec-cell">
+                <dt>Reparación Finalizada</dt>
+                <dd>{{ result.order.completedAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              </div>
+            }
+            @if (result.order.deliveredAt) {
+              <div class="ow-spec-cell">
+                <dt>Entregado al Cliente</dt>
+                <dd>{{ result.order.deliveredAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              </div>
+            }
+          </dl>
+
+          <div class="ow-issue-block">
+            <span class="nf-label">Falla Reportada en Recepción</span>
+            <p class="ow-issue-text">{{ result.order.issueDesc }}</p>
+          </div>
+
+          @if (result.order.resolutionNotes) {
+            <div class="ow-issue-block ow-issue-block--highlight">
+              <span class="nf-label">Informe Técnico de Resolución</span>
+              <p class="ow-issue-text">{{ result.order.resolutionNotes }}</p>
+            </div>
+          }
+
+          @if (result.order.cancellationReason) {
+            <div class="ow-issue-block ow-issue-block--highlight">
+              <span class="nf-label">Motivo de Cancelación Registrado</span>
+              <p class="ow-issue-text">{{ result.order.cancellationReason }}</p>
+            </div>
+          }
+        </div>
+
+        <!-- Public Audit History Timeline -->
+        <div class="nf-card trk-details-card">
+          <div class="trk-timeline-header">
+            <h3 class="trk-section-title">Historial Cronológico Verificado</h3>
+            <span class="nf-mono-tag">{{ result.order.history.length }} EVENTOS</span>
+          </div>
+
+          <div class="nf-timeline">
+            @for (item of result.order.history; track item.timestamp + item.status) {
+              <div class="nf-timeline__entry">
+                <div class="nf-timeline__meta">
+                  <span class="nf-timeline__transition">
+                    {{ statusLabel(item.status) }}
+                  </span>
+                  <span>{{ item.timestamp | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                @if (item.comment) {
+                  <p class="nf-timeline__comment">{{ item.comment }}</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </article>
+  } @else if (!isSearching() && !errorMessage()) {
+    <!-- ====================================================================
+         4. EMPTY STATE / CUSTOMER GUIDANCE
+         ==================================================================== -->
+    <div class="trk-info-grid">
+      <div class="nf-card trk-info-card">
+        <span class="nf-mono-tag">01 // CÓDIGO DE COMPROBANTE</span>
+        <h2 class="trk-info-card__title">¿Dónde encuentro mi código?</h2>
+        <p class="trk-info-card__desc">
+          El código de seguimiento (con formato <code>ORD-XXXXXX</code>) se encuentra en el
+          comprobante entregado en recepción al momento de dejar tu equipo.
+        </p>
+      </div>
+
+      <div class="nf-card trk-info-card">
+        <span class="nf-mono-tag">02 // AVANCE PASO A PASO</span>
+        <h2 class="trk-info-card__title">Estado siempre actualizado</h2>
+        <p class="trk-info-card__desc">
+          Revisa en cualquier momento si tu equipo está en diagnóstico, en proceso de reparación o
+          listo para ser retirado en recepción.
+        </p>
+      </div>
+
+      <div class="nf-card trk-info-card">
+        <span class="nf-mono-tag">03 // EQUIPO DE TRABAJO</span>
+        <h2 class="trk-info-card__title">¿Trabajas en el centro de servicio?</h2>
+        <p class="trk-info-card__desc">
+          Si formas parte del personal de recepción o laboratorio de una empresa registrada, inicia
+          sesión para gestionar tus órdenes asignadas.
+        </p>
+        <div class="trk-info-card__cta">
+          @if (authService.isAuthenticated()) {
+            <a routerLink="/orders" class="nf-btn nf-btn--ghost">
+              <app-icon name="wrench" [size]="14" />
+              <span>Ir a Órdenes de Servicio</span>
+            </a>
+          } @else {
+            <a routerLink="/login" class="nf-btn nf-btn--ghost">
+              <app-icon name="lock" [size]="14" />
+              <span>Iniciar Sesión</span>
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</section>

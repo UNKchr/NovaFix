@@ -1,0 +1,172 @@
+<a class="skip-link visually-hidden" href="#main-content">
+  Saltar al contenido principal
+</a>
+
+<div class="nf-shell">
+  <!-- ====================================================================
+       ARCHITECTURAL HEADER (1px Hairline Border, Zero Shadows)
+       ==================================================================== -->
+  <header class="nf-header">
+    <div class="nf-container nf-header__inner">
+      <a routerLink="/" class="nf-brand" aria-label="Ir al inicio de NovaFix">
+        <span class="nf-brand__mark" aria-hidden="true">NF</span>
+        <div class="nf-brand__text">
+          <span class="nf-brand__name">NOVAFIX</span>
+          <span class="nf-brand__meta">GESTIÓN DE SERVICIO TÉCNICO</span>
+        </div>
+      </a>
+
+      <nav class="nf-nav" aria-label="Navegación principal">
+        <a
+          routerLink="/"
+          routerLinkActive="nf-nav__link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nf-nav__link"
+        >
+          <span>Inicio</span>
+        </a>
+
+        <a
+          routerLink="/tracking"
+          routerLinkActive="nf-nav__link--active"
+          class="nf-nav__link"
+        >
+          <app-icon name="search" [size]="13" />
+          <span>Consultar Orden</span>
+        </a>
+
+        @if (authService.isAuthenticated()) {
+          <a
+            routerLink="/orders"
+            routerLinkActive="nf-nav__link--active"
+            class="nf-nav__link"
+          >
+            <app-icon name="wrench" [size]="13" />
+            <span>Órdenes</span>
+          </a>
+
+          @if (authService.hasPermission('MANAGE_AREAS')) {
+            <a
+              routerLink="/admin/areas"
+              routerLinkActive="nf-nav__link--active"
+              class="nf-nav__link"
+            >
+              <app-icon name="layers" [size]="13" />
+              <span>Áreas</span>
+            </a>
+          }
+
+          @if (
+            authService.hasPermission('MANAGE_USERS') ||
+            authService.hasPermission('ORDER_VIEW_AREA')
+          ) {
+            <a
+              routerLink="/admin/users"
+              routerLinkActive="nf-nav__link--active"
+              class="nf-nav__link"
+            >
+              <app-icon name="user" [size]="13" />
+              <span>Personal</span>
+            </a>
+          }
+        } @else {
+          <a
+            routerLink="/login"
+            routerLinkActive="nf-nav__link--active"
+            class="nf-nav__link"
+          >
+            <app-icon name="lock" [size]="13" />
+            <span>Iniciar Sesión</span>
+          </a>
+
+          <a
+            routerLink="/register-company"
+            routerLinkActive="nf-nav__link--active"
+            class="nf-nav__link"
+          >
+            <app-icon name="building" [size]="13" />
+            <span>Registrar Empresa</span>
+          </a>
+        }
+      </nav>
+
+      <div class="nf-header__actions">
+        @if (authService.currentUser(); as user) {
+          <button
+            type="button"
+            class="nf-btn nf-btn--ghost nf-notif-btn"
+            [class.nf-notif-btn--unread]="notificationsService.unreadCount() > 0"
+            (click)="openNotifications()"
+            [attr.aria-label]="
+              'Bandeja de notificaciones (' +
+              notificationsService.unreadCount() +
+              ' sin leer)'
+            "
+          >
+            <app-icon name="bell" [size]="15" />
+            <span class="nf-notif-btn__count">{{
+              notificationsService.unreadCount()
+            }}</span>
+          </button>
+
+          <div class="nf-user-pill" aria-label="Usuario autenticado">
+            <span class="nf-user-pill__company">{{ user.companyName }}</span>
+            <span class="nf-user-pill__divider" aria-hidden="true">/</span>
+            <span class="nf-user-pill__name">{{ user.fullName }}</span>
+            @if (user.isCompanyAdmin) {
+              <span class="nf-user-pill__role">ADMIN</span>
+            } @else if (user.areaName) {
+              <span class="nf-user-pill__role">{{ user.areaName }}</span>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="nf-btn nf-btn--ghost nf-logout-btn"
+            (click)="handleLogout()"
+            aria-label="Cerrar sesión de forma segura"
+          >
+            <app-icon name="log-out" [size]="15" />
+            <span>Salir</span>
+          </button>
+        }
+
+        <button
+          type="button"
+          class="nf-btn nf-btn--ghost nf-theme-toggle"
+          (click)="themeService.cycleTheme()"
+          [attr.aria-label]="'Cambiar esquema de color. Actual: ' + themeService.themeLabel()"
+        >
+          <app-icon [name]="themeService.isDarkActive() ? 'moon' : 'sun'" [size]="16" />
+          <span class="nf-theme-toggle__label">{{ themeService.themeLabel() }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       MAIN ARCHITECTURAL WORKSPACE
+       ==================================================================== -->
+  <main id="main-content" class="nf-main">
+    <router-outlet />
+  </main>
+
+  <app-notifications-drawer
+    #notificationsDrawer
+    (selectTicket)="navigateToOrderTicket($event)"
+  />
+
+  <!-- ====================================================================
+       ARCHITECTURAL FOOTER
+       ==================================================================== -->
+  <footer class="nf-footer">
+    <div class="nf-container nf-footer__inner">
+      <span class="nf-footer__copy">
+        NOVAFIX — GESTIÓN DE ÓRDENES Y SOPORTE TÉCNICO
+      </span>
+      <span class="nf-footer__spec">
+        RECEPCIÓN · LABORATORIO TÉCNICO · SEGUIMIENTO EN LÍNEA
+      </span>
+    </div>
+  </footer>
+</div>

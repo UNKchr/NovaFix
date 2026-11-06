@@ -1,0 +1,114 @@
+/* ==========================================================================
+   NOVAFIX — RADICAL MINIMALIST MONOCHROMATIC DESIGN TOKENS
+   Strict Palette: Pure White, Off-Whites, Carbon Black, and Neutral Grays.
+   Zero decorative brand colors in UI chromes.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------------
+     1. Raw Monochromatic Primitives
+     ------------------------------------------------------------------------ */
+  --mono-white: #ffffff;
+  --mono-paper: #fbfbfa;
+  --mono-warm-gray: #f7f6f3;
+  --mono-border-light: #e5e5e5;
+  --mono-border-mid: #d4d4d2;
+
+  --mono-gray-500: #898989;
+  --mono-gray-600: #666666;
+  --mono-gray-400: #a3a3a3;
+
+  --mono-charcoal: #242424;
+  --mono-carbon: #111111;
+  --mono-obsidian: #0a0a0a;
+  --mono-dark-surface: #161616;
+  --mono-dark-elevated: #1f1f1f;
+  --mono-border-dark: #2a2a2a;
+  --mono-border-dark-strong: #3d3d3d;
+
+  /* ------------------------------------------------------------------------
+     2. Semantic Adaptive Tokens (Light / Dark Mode via light-dark())
+     ------------------------------------------------------------------------ */
+  /* Canvas & Surfaces */
+  --color-bg-canvas: light-dark(var(--mono-white), var(--mono-carbon));
+  --color-bg-surface: light-dark(var(--mono-paper), var(--mono-dark-surface));
+  --color-bg-subtle: light-dark(var(--mono-warm-gray), var(--mono-dark-elevated));
+  --color-bg-inverse: light-dark(var(--mono-carbon), var(--mono-white));
+
+  /* Typography Hierarchy */
+  --color-text-primary: light-dark(var(--mono-carbon), var(--mono-white));
+  --color-text-body: light-dark(var(--mono-charcoal), #e6e6e6);
+  --color-text-secondary: light-dark(#595959, var(--mono-gray-400));
+  --color-text-muted: light-dark(var(--mono-gray-500), var(--mono-gray-500));
+  --color-text-inverse: light-dark(var(--mono-white), var(--mono-carbon));
+
+  /* Architectural Hairline Borders (1px solid, zero shadows) */
+  --color-border-default: light-dark(var(--mono-border-light), var(--mono-border-dark));
+  --color-border-strong: light-dark(var(--mono-carbon), var(--mono-white));
+  --color-border-subtle: light-dark(var(--mono-warm-gray), #1d1d1d);
+
+  /* Focus & Accessibility */
+  --color-focus-ring: light-dark(var(--mono-carbon), var(--mono-white));
+
+  /* ------------------------------------------------------------------------
+     3. Typography System (Architectural Sans + Technical Monospace)
+     ------------------------------------------------------------------------ */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Fluid & Modular Type Scale */
+  --text-xs: 0.75rem;      /* 12px - Labels, technical codes, badges */
+  --text-sm: 0.875rem;     /* 14px - Secondary metadata, compact UI */
+  --text-base: 1rem;       /* 16px - Body copy */
+  --text-lg: 1.125rem;     /* 18px - Lead paragraphs */
+  --text-xl: 1.25rem;      /* 20px - Card headings */
+  --text-2xl: 1.5rem;      /* 24px - Section subheadings */
+  --text-3xl: clamp(1.75rem, 2.5vw, 2.25rem); /* 28px–36px - Section titles */
+  --text-display: clamp(2.25rem, 4.5vw, 3.75rem); /* 36px–60px - Architectural Hero */
+
+  /* Font Weights (Strict 400, 500, 600 — no heavy 800/900) */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Letter Spacing & Line Heights */
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.022em;
+  --tracking-normal: -0.008em;
+  --tracking-wide: 0.06em;
+  --tracking-mono: 0.04em;
+
+  --leading-tight: 1.12;
+  --leading-snug: 1.3;
+  --leading-relaxed: 1.65;
+
+  /* ------------------------------------------------------------------------
+     4. Spatial Scale (Strict 4px / 8px Multiples for Macro-Whitespace)
+     ------------------------------------------------------------------------ */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* Layout Constraints */
+  --container-max: 78rem; /* 1248px */
+  --border-hairline: 1px solid var(--color-border-default);
+  --border-strong: 1px solid var(--color-border-strong);
+
+  /* ------------------------------------------------------------------------
+     5. Motion & Transitions (Compositor-Friendly & Subtle)
+     ------------------------------------------------------------------------ */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 240ms;
+  --duration-entry: 380ms;
+}

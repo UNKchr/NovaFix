@@ -1,0 +1,392 @@
+<section class="nf-section nf-enter" aria-labelledby="areas-heading">
+  <div class="nf-container">
+    <!-- Top Header & Metrics Bar -->
+    <header class="areas-header">
+      <div class="areas-header__title-group">
+        <span class="nf-mono-tag">
+          <app-icon name="layers" [size]="13" />
+          <span>ADMINISTRACIÓN DE EMPRESA · ÁREAS DE TRABAJO</span>
+        </span>
+        <h1 id="areas-heading" class="areas-header__title">
+          Gestión de Áreas y Laboratorios
+        </h1>
+        <p class="areas-header__lead">
+          Organiza las áreas de recepción de clientes y los laboratorios técnicos de tu empresa, y
+          define los permisos base de cada equipo de trabajo.
+        </p>
+      </div>
+
+      <div class="areas-header__actions">
+        <button
+          type="button"
+          class="nf-btn nf-btn--ghost"
+          (click)="reloadAreas()"
+          [disabled]="areasService.isLoading()"
+        >
+          <app-icon name="refresh" [size]="15" />
+          <span>Actualizar</span>
+        </button>
+
+        <button
+          type="button"
+          class="nf-btn nf-btn--primary"
+          (click)="openCreateForm()"
+        >
+          <app-icon name="plus" [size]="15" />
+          <span>Nueva Área de Trabajo</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Summary Telemetry Strip -->
+    <div class="areas-metrics" role="region" aria-label="Resumen de áreas">
+      <div class="areas-metrics__cell">
+        <span class="areas-metrics__label">TOTAL DE ÁREAS</span>
+        <span class="areas-metrics__value">{{ areasService.areas().length }}</span>
+      </div>
+      <div class="areas-metrics__cell">
+        <span class="areas-metrics__label">LABORATORIOS TÉCNICOS</span>
+        <span class="areas-metrics__value">{{ areasService.technicalAreasCount() }}</span>
+      </div>
+      <div class="areas-metrics__cell">
+        <span class="areas-metrics__label">ÁREAS DE RECEPCIÓN</span>
+        <span class="areas-metrics__value">{{ areasService.receptionAreasCount() }}</span>
+      </div>
+    </div>
+
+    <!-- Feedback & Error Alerts -->
+    <div aria-live="polite" aria-atomic="true">
+      @if (feedbackMessage(); as msg) {
+        <div class="nf-alert nf-enter areas-alert">
+          <app-icon name="check" [size]="16" />
+          <span>{{ msg }}</span>
+        </div>
+      }
+      @if (errorMessage(); as err) {
+        <div class="nf-alert nf-enter areas-alert" role="alert">
+          <app-icon name="alert" [size]="16" />
+          <span>{{ err }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Create / Edit Area Architectural Form Panel -->
+    @if (isFormOpen()) {
+      <section
+        class="nf-card areas-form-panel nf-enter"
+        aria-labelledby="area-form-title"
+      >
+        <header class="areas-form-panel__header">
+          <div>
+            <span class="areas-form-panel__kicker">
+              {{ editingAreaId() ? 'MODIFICAR CONFIGURACIÓN' : 'NUEVA UNIDAD OPERATIVA' }}
+            </span>
+            <h2 id="area-form-title" class="areas-form-panel__title">
+              {{ editingAreaId() ? 'Editar Área Operativa' : 'Crear Área Operativa' }}
+            </h2>
+          </div>
+
+          <button type="button" class="nf-btn nf-btn--ghost" (click)="closeForm()">
+            <app-icon name="x" [size]="14" />
+            <span>Cerrar</span>
+          </button>
+        </header>
+
+        <form
+          class="nf-form"
+          method="post"
+          [formGroup]="areaForm"
+          (ngSubmit)="onSubmitArea()"
+          novalidate
+        >
+          <div class="areas-form-grid">
+            <!-- Area Name -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="area-name-input">Nombre del Área</label>
+                <span class="nf-required-badge">2–80 CARACTERES</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('name')"
+              >
+                <input
+                  id="area-name-input"
+                  name="name"
+                  type="text"
+                  class="nf-input"
+                  formControlName="name"
+                  placeholder="Ej. Laboratorio de Microelectrónica"
+                  maxlength="80"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('name')"
+                />
+              </div>
+              @if (isFieldInvalid('name')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Ingresa un nombre válido (2 a 80 caracteres sin símbolos &lt; &gt;).</span>
+                </span>
+              }
+            </div>
+
+            <!-- Area Description -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="area-desc-input">Descripción Operativa</label>
+                <span class="nf-required-badge">OPCIONAL · MÁX 255</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('description')"
+              >
+                <input
+                  id="area-desc-input"
+                  name="description"
+                  type="text"
+                  class="nf-input"
+                  formControlName="description"
+                  placeholder="Ej. Diagnóstico y soldadura SMD de placas base"
+                  maxlength="255"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Operational Mode Selection (Radio) -->
+          <fieldset class="nf-fieldset">
+            <legend class="nf-label">Comportamiento en el Motor de Órdenes</legend>
+            <div class="nf-preset-grid">
+              <label
+                class="nf-preset-option"
+                [class.nf-preset-option--selected]="!areaForm.controls.isTechnicalQueue.value"
+              >
+                <div class="nf-preset-option__top">
+                  <span class="nf-preset-option__title">Recepción / Área de Origen</span>
+                  <input
+                    type="radio"
+                    name="operationalMode"
+                    [checked]="!areaForm.controls.isTechnicalQueue.value"
+                    (change)="onModeChange(false)"
+                  />
+                </div>
+                <span class="nf-preset-option__summary">
+                  Registra ingresos de clientes, despacha hacia laboratorios y entrega equipos
+                  finalizados.
+                </span>
+              </label>
+
+              <label
+                class="nf-preset-option"
+                [class.nf-preset-option--selected]="areaForm.controls.isTechnicalQueue.value"
+              >
+                <div class="nf-preset-option__top">
+                  <span class="nf-preset-option__title">
+                    Laboratorio Técnico (Taller de Reparación)
+                  </span>
+                  <input
+                    type="radio"
+                    name="operationalMode"
+                    [checked]="areaForm.controls.isTechnicalQueue.value"
+                    (change)="onModeChange(true)"
+                  />
+                </div>
+                <span class="nf-preset-option__summary">
+                  Recibe órdenes desde recepción y las asigna automáticamente al personal técnico
+                  disponible.
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Default Permission Preset Selection (5 Exclusive Options -> Radio) -->
+          <fieldset class="nf-fieldset">
+            <legend class="nf-label">Plantilla Base de Permisos del Área (Preset)</legend>
+            <div class="nf-preset-grid">
+              @for (item of presetCatalog; track item.preset) {
+                <label
+                  class="nf-preset-option"
+                  [class.nf-preset-option--selected]="selectedPresetSignal() === item.preset"
+                >
+                  <div class="nf-preset-option__top">
+                    <span class="nf-preset-option__title">{{ item.label }}</span>
+                    <input
+                      type="radio"
+                      name="areaDefaultPreset"
+                      [value]="item.preset"
+                      [checked]="selectedPresetSignal() === item.preset"
+                      (change)="onPresetSelect(item.preset)"
+                    />
+                  </div>
+                  <span class="nf-preset-option__summary">{{ item.summary }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <!-- Additional Granular Area Permissions (Checkbox) -->
+          <fieldset class="nf-fieldset">
+            <legend class="nf-label">
+              Permisos Adicionales del Área · Efectivos Totales ({{
+                effectivePreviewPermissions().length
+              }}/12)
+            </legend>
+            <div class="nf-perm-grid">
+              @for (perm of permissionCatalog; track perm.code) {
+                <label
+                  class="nf-perm-item"
+                  [class.nf-perm-item--active]="
+                    effectivePreviewPermissions().includes(perm.code)
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="isExtraPermissionSelected(perm.code)"
+                    (change)="toggleExtraPermission(perm.code, $event)"
+                  />
+                  <div class="nf-perm-item__text">
+                    <span class="nf-perm-item__label">{{ perm.label }}</span>
+                    <span class="nf-perm-item__code">{{ perm.code }}</span>
+                  </div>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <div class="areas-form-actions">
+            <button type="button" class="nf-btn nf-btn--ghost" (click)="closeForm()">
+              <span>Cancelar</span>
+            </button>
+            <button
+              type="submit"
+              class="nf-btn nf-btn--primary"
+              [disabled]="isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span>Guardando Área...</span>
+              } @else {
+                <app-icon name="check" [size]="15" />
+                <span>{{ editingAreaId() ? 'Guardar Cambios' : 'Crear Área Operativa' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Areas Hairline Grid -->
+    <div class="nf-cards-grid areas-grid">
+      @for (area of areasService.areas(); track area.id) {
+        <article class="nf-card areas-card nf-enter">
+          <header class="areas-card__header">
+            <span
+              class="nf-mono-tag"
+              [class.nf-mono-tag--inverted]="area.isTechnicalQueue"
+            >
+              <app-icon [name]="area.isTechnicalQueue ? 'wrench' : 'building'" [size]="13" />
+              <span>{{
+                area.isTechnicalQueue ? 'LABORATORIO TÉCNICO' : 'ÁREA DE RECEPCIÓN'
+              }}</span>
+            </span>
+
+            <span class="areas-card__preset">
+              {{ getPresetLabel(area.defaultPreset) }}
+            </span>
+          </header>
+
+          <div class="areas-card__body">
+            <h2 class="areas-card__title">{{ area.name }}</h2>
+            <p class="areas-card__desc">
+              {{ area.description || 'Sin descripción adicional registrada.' }}
+            </p>
+          </div>
+
+          <dl class="areas-card__stats">
+            <div class="areas-card__stat-row">
+              <dt>Personal Activo</dt>
+              <dd>{{ area.activeUsersCount }} operadores</dd>
+            </div>
+            <div class="areas-card__stat-row">
+              <dt>Órdenes Activas</dt>
+              <dd>{{ area.activeOrdersCount }} en curso</dd>
+            </div>
+          </dl>
+
+          <footer class="areas-card__footer">
+            <button
+              type="button"
+              class="nf-btn nf-btn--ghost areas-card__btn"
+              (click)="openEditForm(area)"
+            >
+              <app-icon name="edit" [size]="14" />
+              <span>Editar</span>
+            </button>
+
+            <button
+              type="button"
+              class="nf-btn nf-btn--ghost areas-card__btn"
+              (click)="promptDeleteArea(area)"
+            >
+              <app-icon name="trash" [size]="14" />
+              <span>Dar de Baja</span>
+            </button>
+          </footer>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Native Modal Dialog (<dialog>) for Safe Area Soft-Delete -->
+<dialog
+  #deleteAreaDialog
+  class="nf-dialog"
+  aria-labelledby="delete-area-dialog-title"
+  (close)="onDeleteDialogClose($event)"
+>
+  @if (pendingDeleteArea(); as target) {
+    <header class="nf-dialog__header">
+      <h2 id="delete-area-dialog-title" class="nf-dialog__title">
+        Confirmar Baja de Área Operativa
+      </h2>
+    </header>
+
+    <div class="nf-dialog__body">
+      <p>
+        Estás a punto de dar de baja el área <strong>{{ target.name }}</strong>.
+      </p>
+
+      @if (target.activeUsersCount > 0 || target.activeOrdersCount > 0) {
+        <div class="nf-alert">
+          <app-icon name="alert" [size]="18" />
+          <span>
+            No es posible eliminar esta área todavía: tiene
+            <strong>{{ target.activeUsersCount }} usuarios activos</strong> y
+            <strong>{{ target.activeOrdersCount }} órdenes en curso</strong>. Reubica al personal y
+            finaliza las órdenes pendientes antes de darla de baja.
+          </span>
+        </div>
+      } @else {
+        <p>
+          El historial de órdenes atendidas anteriormente en esta área se conservará intacto para
+          futura consulta.
+        </p>
+      }
+    </div>
+
+    <form method="dialog" class="nf-dialog__footer">
+      <button type="submit" value="cancel" class="nf-btn nf-btn--ghost" autofocus>
+        <span>Cancelar</span>
+      </button>
+      <button
+        type="submit"
+        value="confirm-delete"
+        class="nf-btn nf-btn--primary"
+        [disabled]="target.activeUsersCount > 0 || target.activeOrdersCount > 0"
+      >
+        <app-icon name="trash" [size]="14" />
+        <span>Confirmar Baja Segura</span>
+      </button>
+    </form>
+  }
+</dialog>

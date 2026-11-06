@@ -1,0 +1,31 @@
+/* ==========================================================================
+   NOVAFIX — THEME & NATIVE COLOR-SCHEME CONFIGURATION
+   Adapts automatically to system preference or explicit <meta name="color-scheme">
+   ========================================================================== */
+
+:root {
+  /* MANDATORY: Apply color-scheme to :root for viewport-wide theming */
+  color-scheme: light dark;
+
+  /* Synchronize browser native controls & scrollbars in strict monochrome */
+  accent-color: light-dark(var(--mono-carbon), var(--mono-white));
+  --color-scrollbar-track: light-dark(var(--mono-paper), var(--mono-carbon));
+  --color-scrollbar-thumb: light-dark(var(--mono-border-mid), var(--mono-border-dark-strong));
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+  scrollbar-width: thin;
+
+  /* Explicit user theme override via <meta name="color-scheme"> in <head> */
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+}
+
+/* Selection highlight in inverted monochrome */
+::selection {
+  background-color: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}

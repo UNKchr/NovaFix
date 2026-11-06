@@ -1,0 +1,9 @@
+/* ==========================================================================
+   NOVAFIX — GLOBAL STYLESHEET ENTRYPOINT
+   Layered Cascade: tokens -> theme -> reset -> layout
+   ========================================================================== */
+
+@import './styles/base/_variables.css';
+@import './styles/themes/_dark.css';
+@import './styles/base/_reset.css';
+@import './styles/layout/_grid.css';

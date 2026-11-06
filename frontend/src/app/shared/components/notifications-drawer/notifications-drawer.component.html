@@ -1,0 +1,152 @@
+<dialog
+  #notificationsDialog
+  class="nf-dialog notif-dialog"
+  aria-labelledby="notifications-dialog-title"
+>
+  <header class="nf-dialog__header">
+    <div class="notif-dialog__title-row">
+      <app-icon name="bell" [size]="16" />
+      <h2 id="notifications-dialog-title" class="nf-dialog__title">
+        Notificaciones
+      </h2>
+      <span class="nf-mono-tag nf-mono-tag--inverted">
+        <span>{{ notificationsService.unreadCount() }} SIN LEER</span>
+      </span>
+    </div>
+
+    <form method="dialog">
+      <button
+        type="submit"
+        value="close"
+        class="nf-btn nf-btn--ghost notif-dialog__close"
+        aria-label="Cerrar bandeja de notificaciones"
+        autofocus
+      >
+        <app-icon name="x" [size]="14" />
+        <span>Cerrar</span>
+      </button>
+    </form>
+  </header>
+
+  <div class="notif-toolbar">
+    <button
+      type="button"
+      class="nf-btn nf-btn--ghost notif-toolbar__btn"
+      (click)="reloadFeed()"
+      [disabled]="notificationsService.isLoading()"
+    >
+      <app-icon name="refresh" [size]="13" />
+      <span>Actualizar</span>
+    </button>
+
+    <button
+      type="button"
+      class="nf-btn nf-btn--ghost notif-toolbar__btn"
+      (click)="handleMarkAllRead()"
+      [disabled]="notificationsService.unreadCount() === 0"
+    >
+      <app-icon name="check" [size]="13" />
+      <span>Marcar Leídas</span>
+    </button>
+
+    <button
+      type="button"
+      class="nf-btn nf-btn--ghost notif-toolbar__btn"
+      (click)="handleClearAll()"
+      [disabled]="notificationsService.items().length === 0"
+    >
+      <app-icon name="trash" [size]="13" />
+      <span>Limpiar Bandeja</span>
+    </button>
+  </div>
+
+  <div class="nf-dialog__body notif-body">
+    <div aria-live="polite" aria-atomic="true">
+      @if (statusMessage(); as msg) {
+        <div class="nf-alert notif-alert">
+          <app-icon name="check" [size]="15" />
+          <span>{{ msg }}</span>
+        </div>
+      }
+      @if (errorMessage(); as err) {
+        <div class="nf-alert notif-alert" role="alert">
+          <app-icon name="alert" [size]="15" />
+          <span>{{ err }}</span>
+        </div>
+      }
+    </div>
+
+    @if (notificationsService.items().length > 0) {
+      <ul class="notif-list" aria-label="Lista de notificaciones">
+        @for (item of notificationsService.items(); track item.id) {
+          <li
+            class="notif-item"
+            [class.notif-item--unread]="!item.isRead"
+          >
+            <div class="notif-item__top">
+              <div class="notif-item__badges">
+                @if (!item.isRead) {
+                  <span class="nf-mono-tag nf-mono-tag--inverted">NUEVA</span>
+                }
+                <button
+                  type="button"
+                  class="notif-item__ticket"
+                  (click)="handleInspectTicket(item)"
+                  [attr.aria-label]="'Abrir orden ' + item.ticketCode"
+                >
+                  <span>{{ item.ticketCode }}</span>
+                  <app-icon name="arrow-up-right" [size]="13" />
+                </button>
+              </div>
+
+              <span class="notif-item__time">
+                {{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <h3 class="notif-item__title">{{ item.title }}</h3>
+            <p class="notif-item__message">{{ item.message }}</p>
+
+            <div class="notif-item__footer">
+              <span class="notif-item__actor">
+                Generado por: {{ item.actorFullName }}
+              </span>
+
+              <div class="notif-item__actions">
+                @if (!item.isRead) {
+                  <button
+                    type="button"
+                    class="notif-action-link"
+                    (click)="handleMarkOneRead(item)"
+                  >
+                    <app-icon name="check" [size]="12" />
+                    <span>Leída</span>
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  class="notif-action-link"
+                  (click)="handleHideOne(item)"
+                  [attr.aria-label]="'Ocultar notificación de orden ' + item.ticketCode"
+                >
+                  <app-icon name="x" [size]="12" />
+                  <span>Ocultar</span>
+                </button>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="notif-empty">
+        <app-icon name="bell" [size]="22" />
+        <p class="notif-empty__title">No tienes notificaciones pendientes</p>
+        <p class="notif-empty__desc">
+          Cuando se asignen nuevas órdenes o se actualice el estado de un equipo, recibirás un aviso
+          aquí en tiempo real.
+        </p>
+      </div>
+    }
+  </div>
+</dialog>

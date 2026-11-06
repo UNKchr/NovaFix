@@ -1,0 +1,312 @@
+<section class="nf-auth-section nf-enter" aria-labelledby="register-heading">
+  <div class="nf-container">
+    <div class="nf-auth-grid">
+      <!-- Left Context Column -->
+      <aside class="nf-auth-aside" aria-label="Información de registro de empresa">
+        <div class="register-aside__top">
+          <span class="nf-mono-tag">
+            <app-icon name="building" [size]="13" />
+            <span>REGISTRO DE EMPRESA</span>
+          </span>
+
+          <h1 id="register-heading" class="register-aside__title">
+            Comienza a gestionar tu centro de servicio.
+          </h1>
+
+          <p class="register-aside__desc">
+            Al registrar tu empresa, se crean automáticamente dos áreas iniciales
+            (<strong>Recepción Principal</strong> y
+            <strong>Laboratorio de Reparación</strong>) para que puedas empezar a recibir órdenes e
+            integrar a tu equipo de trabajo de inmediato.
+          </p>
+        </div>
+
+        <div class="register-steps">
+          <span class="register-steps__heading">¿QUÉ INCLUYE TU CUENTA INICIAL?</span>
+          <ol class="register-steps__list">
+            <li>
+              <span class="register-steps__num">01</span>
+              <span>Espacio de trabajo exclusivo para tu empresa o taller.</span>
+            </li>
+            <li>
+              <span class="register-steps__num">02</span>
+              <span>Áreas de Recepción y Laboratorio listas para operar.</span>
+            </li>
+            <li>
+              <span class="register-steps__num">03</span>
+              <span>Cuenta de Administrador para gestionar áreas y personal.</span>
+            </li>
+          </ol>
+        </div>
+      </aside>
+
+      <!-- Right Form Panel -->
+      <div class="nf-auth-panel">
+        <header class="register-panel__header">
+          <span class="register-panel__kicker">NUEVA CUENTA DE EMPRESA</span>
+          <h2 class="register-panel__title">Registrar empresa y administrador</h2>
+        </header>
+
+        <div aria-live="polite" aria-atomic="true">
+          @if (serverErrorMessage(); as errorMsg) {
+            <div class="nf-alert nf-enter" role="alert">
+              <app-icon name="alert" [size]="18" />
+              <span>{{ errorMsg }}</span>
+            </div>
+          }
+        </div>
+
+        <form
+          class="nf-form"
+          method="post"
+          action="/api/auth/register-company"
+          [formGroup]="registerForm"
+          (ngSubmit)="onSubmit()"
+          novalidate
+        >
+          <fieldset class="nf-fieldset">
+            <legend class="visually-hidden">Datos de la empresa y cuenta administradora</legend>
+
+            <!-- Company Name -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="reg-company-name">Nombre de la Empresa o Taller</label>
+                <span class="nf-required-badge">2–120 CARACTERES</span>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('companyName')"
+              >
+                <input
+                  id="reg-company-name"
+                  name="companyName"
+                  type="text"
+                  class="nf-input"
+                  formControlName="companyName"
+                  placeholder="Ej. Laboratorio Técnico Vértice S.A."
+                  autocomplete="organization"
+                  enterkeyhint="next"
+                  maxlength="120"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('companyName')"
+                  aria-describedby="reg-company-error"
+                  (input)="onFieldInput('companyName')"
+                />
+              </div>
+
+              @if (
+                getTextErrorMessage('companyName', 'El nombre de la empresa', 120);
+                as companyErr
+              ) {
+                <span id="reg-company-error" class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>{{ companyErr }}</span>
+                </span>
+              }
+            </div>
+
+            <!-- Admin Full Name -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="reg-admin-name">
+                  Nombre Completo del Administrador
+                </label>
+                <span class="nf-required-badge">2–100 CARACTERES</span>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('adminFullName')"
+              >
+                <input
+                  id="reg-admin-name"
+                  name="adminFullName"
+                  type="text"
+                  class="nf-input"
+                  formControlName="adminFullName"
+                  placeholder="Ej. Valeria Montes"
+                  autocomplete="name"
+                  enterkeyhint="next"
+                  maxlength="100"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('adminFullName')"
+                  aria-describedby="reg-admin-name-error"
+                  (input)="onFieldInput('adminFullName')"
+                />
+              </div>
+
+              @if (
+                getTextErrorMessage('adminFullName', 'El nombre del administrador', 100);
+                as nameErr
+              ) {
+                <span id="reg-admin-name-error" class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>{{ nameErr }}</span>
+                </span>
+              }
+            </div>
+
+            <!-- Admin Email -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="reg-admin-email">
+                  Correo Electrónico Corporativo
+                </label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('adminEmail')"
+              >
+                <input
+                  id="reg-admin-email"
+                  name="adminEmail"
+                  type="email"
+                  class="nf-input"
+                  formControlName="adminEmail"
+                  placeholder="admin@tuempresa.com"
+                  autocomplete="username"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  maxlength="150"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('adminEmail')"
+                  aria-describedby="reg-admin-email-error"
+                  (input)="onFieldInput('adminEmail')"
+                />
+              </div>
+
+              @if (getEmailErrorMessage(); as emailErr) {
+                <span id="reg-admin-email-error" class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>{{ emailErr }}</span>
+                </span>
+              }
+            </div>
+
+            <!-- Admin Password -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="reg-admin-password">Contraseña Maestra</label>
+                <span class="nf-required-badge">8–72 CARACTERES</span>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('adminPassword')"
+              >
+                <input
+                  id="reg-admin-password"
+                  name="adminPassword"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="nf-input"
+                  formControlName="adminPassword"
+                  placeholder="Mínimo 8 caracteres, letras y números"
+                  autocomplete="new-password"
+                  enterkeyhint="done"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('adminPassword')"
+                  aria-describedby="reg-password-checklist reg-password-error"
+                  (input)="onFieldInput('adminPassword')"
+                />
+
+                <button
+                  type="button"
+                  class="nf-password-toggle"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-pressed]="showPassword()"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  aria-describedby="reg-toggle-warning"
+                >
+                  <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16" />
+                </button>
+                <span id="reg-toggle-warning" class="visually-hidden">
+                  Advertencia: esto mostrará tu contraseña en la pantalla.
+                </span>
+              </div>
+
+              <!-- Monochromatic Non-Color Password Checklist -->
+              <ul
+                id="reg-password-checklist"
+                class="pwd-checklist"
+                aria-label="Requisitos de seguridad de la contraseña"
+              >
+                <li
+                  class="pwd-checklist__item"
+                  [class.pwd-checklist__item--met]="passwordChecklist().minLengthMet"
+                >
+                  <span class="pwd-checklist__box">
+                    @if (passwordChecklist().minLengthMet) {
+                      <app-icon name="check" [size]="11" />
+                    }
+                  </span>
+                  <span>Mínimo 8 caracteres (máx. 72)</span>
+                </li>
+                <li
+                  class="pwd-checklist__item"
+                  [class.pwd-checklist__item--met]="passwordChecklist().hasLetter"
+                >
+                  <span class="pwd-checklist__box">
+                    @if (passwordChecklist().hasLetter) {
+                      <app-icon name="check" [size]="11" />
+                    }
+                  </span>
+                  <span>Al menos una letra (A–Z, a–z)</span>
+                </li>
+                <li
+                  class="pwd-checklist__item"
+                  [class.pwd-checklist__item--met]="passwordChecklist().hasNumber"
+                >
+                  <span class="pwd-checklist__box">
+                    @if (passwordChecklist().hasNumber) {
+                      <app-icon name="check" [size]="11" />
+                    }
+                  </span>
+                  <span>Al menos un dígito numérico (0–9)</span>
+                </li>
+              </ul>
+
+              @if (getPasswordErrorMessage(); as passwordErr) {
+                <span id="reg-password-error" class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>{{ passwordErr }}</span>
+                </span>
+              }
+            </div>
+          </fieldset>
+
+          <div class="register-actions">
+            <button
+              type="submit"
+              class="nf-btn nf-btn--primary register-submit-btn"
+              [disabled]="isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span>Creando cuenta...</span>
+              } @else {
+                <span>Crear Empresa e Iniciar Sesión</span>
+                <app-icon name="arrow-right" [size]="16" />
+              }
+            </button>
+          </div>
+        </form>
+
+        <footer class="register-panel__footer">
+          <span class="register-panel__switch-text">
+            ¿Ya tienes una cuenta activa en tu empresa?
+          </span>
+          <a routerLink="/login" class="nf-btn nf-btn--ghost">
+            <app-icon name="lock" [size]="15" />
+            <span>Ir a Iniciar Sesión</span>
+          </a>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>NovaFix — Sistema de Gestión y Seguimiento de Órdenes Técnicas</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- MANDATORY: Declare support for both light and dark themes before first paint -->
+  <meta name="color-scheme" content="light dark">
+  <script>
+    const colorScheme = localStorage.getItem("color-scheme") ?? "light dark";
+    document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", colorScheme);
+  </script>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

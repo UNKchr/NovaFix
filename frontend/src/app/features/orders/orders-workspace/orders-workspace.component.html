@@ -1,0 +1,750 @@
+<section class="nf-section nf-enter" aria-labelledby="orders-workspace-heading">
+  <div class="nf-container">
+    <!-- Top Header & Scope Badge -->
+    <header class="ow-header">
+      <div class="ow-header__title-group">
+        <div class="ow-header__badges">
+          <span class="nf-mono-tag nf-mono-tag--inverted">
+            <app-icon name="shield" [size]="13" />
+            <span>{{ visibilityScopeLabel() }}</span>
+          </span>
+        </div>
+
+        <h1 id="orders-workspace-heading" class="ow-header__title">
+          Centro de Órdenes de Servicio
+        </h1>
+        <p class="ow-header__lead">
+          Registra el ingreso de equipos, consulta su avance en el taller y gestiona las entregas a
+          tus clientes en tiempo real.
+        </p>
+      </div>
+
+      <div class="ow-header__actions">
+        <button
+          type="button"
+          class="nf-btn nf-btn--ghost"
+          (click)="reloadWorkspace()"
+          [disabled]="ordersService.isLoading()"
+        >
+          <app-icon name="refresh" [size]="15" />
+          <span>Actualizar</span>
+        </button>
+
+        @if (canCreateOrders()) {
+          <button
+            type="button"
+            class="nf-btn nf-btn--primary"
+            (click)="toggleCreatePanel()"
+          >
+            <app-icon [name]="isCreatePanelOpen() ? 'x' : 'plus'" [size]="15" />
+            <span>{{
+              isCreatePanelOpen() ? 'Cerrar Formulario' : 'Registrar Nueva Orden'
+            }}</span>
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Operational Telemetry Strip -->
+    <div class="ow-metrics" role="region" aria-label="Resumen operativo de órdenes">
+      <div class="ow-metrics__cell">
+        <span class="ow-metrics__label">TOTAL DE ÓRDENES</span>
+        <span class="ow-metrics__value">{{ ordersService.orders().length }}</span>
+      </div>
+      <div class="ow-metrics__cell">
+        <span class="ow-metrics__label">EN ESPERA DE TÉCNICO</span>
+        <span class="ow-metrics__value">{{ ordersService.assigningCount() }}</span>
+      </div>
+      <div class="ow-metrics__cell">
+        <span class="ow-metrics__label">EN TALLER</span>
+        <span class="ow-metrics__value">{{ ordersService.activeLabCount() }}</span>
+      </div>
+      <div class="ow-metrics__cell">
+        <span class="ow-metrics__label">LISTAS PARA ENTREGA</span>
+        <span class="ow-metrics__value">{{ ordersService.readyForDeliveryCount() }}</span>
+      </div>
+    </div>
+
+    <!-- Feedback & Error Alerts -->
+    <div aria-live="polite" aria-atomic="true">
+      @if (feedbackMessage(); as msg) {
+        <div class="nf-alert nf-enter ow-alert">
+          <app-icon name="check" [size]="16" />
+          <span>{{ msg }}</span>
+        </div>
+      }
+      @if (errorMessage(); as err) {
+        <div class="nf-alert nf-enter ow-alert" role="alert">
+          <app-icon name="alert" [size]="16" />
+          <span>{{ err }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Create Order Panel (Reception / Admin) -->
+    @if (isCreatePanelOpen() && canCreateOrders()) {
+      <section class="nf-card ow-create-panel nf-enter" aria-labelledby="create-order-title">
+        <header class="ow-create-panel__header">
+          <div>
+            <span class="ow-create-panel__kicker">
+              NUEVO INGRESO DE EQUIPO
+            </span>
+            <h2 id="create-order-title" class="ow-create-panel__title">
+              Registrar Nueva Orden de Servicio
+            </h2>
+          </div>
+        </header>
+
+        <form
+          class="nf-form"
+          method="post"
+          [formGroup]="createOrderForm"
+          (ngSubmit)="onSubmitCreateOrder()"
+          novalidate
+        >
+          <div class="ow-form-grid">
+            <!-- Client Name -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="ord-client-name">Nombre del Cliente o Empresa</label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isCreateFieldInvalid('clientName')"
+              >
+                <input
+                  id="ord-client-name"
+                  name="clientName"
+                  type="text"
+                  class="nf-input"
+                  formControlName="clientName"
+                  placeholder="Ej. Corporación Vértice S.A."
+                  maxlength="100"
+                  required
+                />
+              </div>
+              @if (isCreateFieldInvalid('clientName')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Ingresa el nombre del cliente (2 a 100 caracteres válidos).</span>
+                </span>
+              }
+            </div>
+
+            <!-- Client Contact -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="ord-client-contact">Contacto (Teléfono o Correo)</label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isCreateFieldInvalid('clientContact')"
+              >
+                <input
+                  id="ord-client-contact"
+                  name="clientContact"
+                  type="text"
+                  class="nf-input"
+                  formControlName="clientContact"
+                  placeholder="Ej. +57 310 555 0192 / soporte@vertice.co"
+                  maxlength="100"
+                  required
+                />
+              </div>
+              @if (isCreateFieldInvalid('clientContact')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Ingresa un medio de contacto válido (mín. 4 caracteres).</span>
+                </span>
+              }
+            </div>
+
+            <!-- Device Model -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="ord-device-model">Equipo / Modelo y Serie</label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isCreateFieldInvalid('deviceModel')"
+              >
+                <input
+                  id="ord-device-model"
+                  name="deviceModel"
+                  type="text"
+                  class="nf-input"
+                  formControlName="deviceModel"
+                  placeholder="Ej. MacBook Pro 16 M3 Max · S/N C02X9"
+                  maxlength="100"
+                  required
+                />
+              </div>
+              @if (isCreateFieldInvalid('deviceModel')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Describe la marca y modelo del equipo (2 a 100 caracteres).</span>
+                </span>
+              }
+            </div>
+
+            <!-- Target Technical Area -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="ord-target-area">
+                  Laboratorio o Área Técnica de Destino
+                </label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isCreateFieldInvalid('targetAreaId')"
+              >
+                <select
+                  id="ord-target-area"
+                  name="targetAreaId"
+                  class="nf-input ow-select"
+                  formControlName="targetAreaId"
+                >
+                  @for (area of technicalTargetAreas(); track area.id) {
+                    <option [value]="area.id">
+                      {{ area.name }} ({{ area.activeUsersCount }} técnicos ·
+                      {{ area.activeOrdersCount }} activas)
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Issue Description -->
+          <div class="nf-field">
+            <div class="nf-label-row">
+              <label class="nf-label" for="ord-issue-desc">
+                Descripción de la Falla Reportada
+              </label>
+              <span class="nf-required-badge">REQUERIDO</span>
+            </div>
+            <div
+              class="nf-input-group"
+              [class.nf-input-group--invalid]="isCreateFieldInvalid('issueDesc')"
+            >
+              <textarea
+                id="ord-issue-desc"
+                name="issueDesc"
+                rows="3"
+                class="nf-input ow-textarea"
+                formControlName="issueDesc"
+                placeholder="Detalla los síntomas reportados por el cliente, estado físico de recepción y accesorios..."
+                maxlength="1000"
+                required
+              ></textarea>
+            </div>
+            @if (isCreateFieldInvalid('issueDesc')) {
+              <span class="nf-field-error">
+                <app-icon name="alert" [size]="13" />
+                <span>Detalla la falla reportada (mínimo 5 caracteres sin símbolos &lt; &gt;).</span>
+              </span>
+            }
+          </div>
+
+          <!-- Priority Selection (4 Exclusive Options -> Radio) -->
+          <fieldset class="nf-fieldset">
+            <legend class="nf-label">Nivel de Prioridad</legend>
+            <div class="nf-preset-grid">
+              @for (item of priorityCatalog; track item.value) {
+                <label
+                  class="nf-preset-option"
+                  [class.nf-preset-option--selected]="
+                    createOrderForm.controls.priority.value === item.value
+                  "
+                >
+                  <div class="nf-preset-option__top">
+                    <span class="nf-preset-option__title">{{ item.label }}</span>
+                    <input
+                      type="radio"
+                      name="orderPriority"
+                      [value]="item.value"
+                      [checked]="createOrderForm.controls.priority.value === item.value"
+                      (change)="onPrioritySelect(item.value)"
+                    />
+                  </div>
+                  <span class="nf-preset-option__summary">{{ item.summary }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <div class="ow-form-actions">
+            <button type="button" class="nf-btn nf-btn--ghost" (click)="toggleCreatePanel()">
+              <span>Cancelar</span>
+            </button>
+            <button type="submit" class="nf-btn nf-btn--primary" [disabled]="isCreating()">
+              @if (isCreating()) {
+                <span>Registrando Orden...</span>
+              } @else {
+                <app-icon name="arrow-right" [size]="15" />
+                <span>Registrar Orden</span>
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Filter & Search Bar -->
+    <div class="ow-toolbar">
+      <div class="ow-filter-pills" role="group" aria-label="Filtrar órdenes por estado">
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'ALL'"
+          (click)="setStatusFilter('ALL')"
+        >
+          <span>Todas</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'CREATED'"
+          (click)="setStatusFilter('CREATED')"
+        >
+          <span>Asignadas</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'ASSIGNING'"
+          (click)="setStatusFilter('ASSIGNING')"
+        >
+          <span>En Espera</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'DIAGNOSING'"
+          (click)="setStatusFilter('DIAGNOSING')"
+        >
+          <span>En Diagnóstico</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'IN_REPAIR'"
+          (click)="setStatusFilter('IN_REPAIR')"
+        >
+          <span>En Reparación</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'READY'"
+          (click)="setStatusFilter('READY')"
+        >
+          <span>Listas</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'DELIVERED'"
+          (click)="setStatusFilter('DELIVERED')"
+        >
+          <span>Entregadas</span>
+        </button>
+        <button
+          type="button"
+          class="ow-pill"
+          [class.ow-pill--active]="activeStatusFilter() === 'CANCELLED'"
+          (click)="setStatusFilter('CANCELLED')"
+        >
+          <span>Canceladas</span>
+        </button>
+      </div>
+
+      <div class="ow-search">
+        <app-icon name="search" [size]="15" />
+        <label for="ow-search-input" class="visually-hidden">
+          Buscar por código ORD-XXXXXX, cliente, equipo o técnico
+        </label>
+        <input
+          id="ow-search-input"
+          type="search"
+          class="ow-search__input"
+          placeholder="Buscar ORD-XXXXXX, cliente, equipo..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        @if (searchQuery()) {
+          <button
+            type="button"
+            class="ow-search__clear"
+            (click)="clearSearch()"
+            aria-label="Limpiar búsqueda"
+          >
+            <app-icon name="x" [size]="13" />
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Master-Detail Workspace Grid -->
+    <div class="ow-workspace-grid">
+      <!-- Left Column: Order Cards List -->
+      <div class="ow-orders-list" role="region" aria-label="Listado de órdenes">
+        @if (filteredOrders().length > 0) {
+          @for (order of filteredOrders(); track order.id) {
+            <article
+              class="nf-card nf-card--interactive ow-order-item"
+              [class.ow-order-item--selected]="selectedOrder()?.id === order.id"
+              (click)="selectOrder(order)"
+            >
+              <div class="ow-order-item__top">
+                <span class="ow-order-item__ticket">{{ order.ticketCode }}</span>
+                <span
+                  class="nf-mono-tag"
+                  [class.nf-mono-tag--inverted]="
+                    order.status === 'READY' || order.status === 'IN_REPAIR'
+                  "
+                >
+                  <span>{{ getStatusLabel(order.status) }}</span>
+                </span>
+              </div>
+
+              <h3 class="ow-order-item__device">{{ order.deviceModel }}</h3>
+              <p class="ow-order-item__client">
+                Cliente: {{ order.clientName }} · {{ getPriorityLabel(order.priority) }}
+              </p>
+
+              <div class="ow-order-item__bottom">
+                <span>
+                  {{ order.originArea?.name ?? 'Recepción' }} → {{ order.targetArea.name }}
+                </span>
+                <span>
+                  {{
+                    order.assignedTo
+                      ? 'Téc: ' + order.assignedTo.fullName
+                      : 'En espera de técnico'
+                  }}
+                </span>
+              </div>
+            </article>
+          }
+        } @else {
+          <div class="nf-card ow-empty">
+            <app-icon name="layers" [size]="22" />
+            <p class="ow-empty__title">No hay órdenes en esta vista</p>
+            <p class="ow-empty__desc">
+              No se encontraron órdenes con el filtro seleccionado.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Right Column: Detailed Order Inspector, Transition Engine & Audit History -->
+      @if (selectedOrder(); as active) {
+        <aside
+          class="nf-card ow-inspector nf-enter"
+          aria-labelledby="inspector-order-heading"
+        >
+          <header class="ow-inspector__header">
+            <div>
+              <span class="ow-inspector__kicker">
+                DETALLE DE LA ORDEN // {{ getPriorityLabel(active.priority) }}
+              </span>
+              <h2 id="inspector-order-heading" class="ow-inspector__title">
+                {{ active.ticketCode }} — {{ active.deviceModel }}
+              </h2>
+            </div>
+
+            <div class="ow-inspector__header-actions">
+              <span class="nf-mono-tag nf-mono-tag--inverted">
+                <span>{{ getStatusLabel(active.status) }}</span>
+              </span>
+
+              <a
+                [routerLink]="['/tracking']"
+                [queryParams]="{ code: active.ticketCode }"
+                class="nf-btn nf-btn--ghost ow-void-btn"
+                aria-label="Abrir vista pública de seguimiento para esta orden"
+              >
+                <app-icon name="arrow-up-right" [size]="14" />
+                <span>Vista del Cliente</span>
+              </a>
+
+              @if (canDeleteOrder(active)) {
+                <button
+                  type="button"
+                  class="nf-btn nf-btn--ghost ow-void-btn"
+                  (click)="promptDeleteOrder(active)"
+                >
+                  <app-icon name="trash" [size]="14" />
+                  <span>Anular Orden</span>
+                </button>
+              }
+            </div>
+          </header>
+
+          <!-- Metadata Specification Grid -->
+          <dl class="ow-spec-grid">
+            <div class="ow-spec-cell">
+              <dt>Cliente y Contacto</dt>
+              <dd>{{ active.clientName }} ({{ active.clientContact }})</dd>
+            </div>
+            <div class="ow-spec-cell">
+              <dt>Registrada por (Recepción)</dt>
+              <dd>
+                {{ active.createdBy.fullName }}
+                @if (active.createdBy.isDeleted) {
+                  <span>(Personal inactivo)</span>
+                }
+              </dd>
+            </div>
+            <div class="ow-spec-cell">
+              <dt>Área de Origen y Destino</dt>
+              <dd>{{ active.originArea?.name ?? 'Recepción' }} → {{ active.targetArea.name }}</dd>
+            </div>
+            <div class="ow-spec-cell">
+              <dt>Técnico Asignado</dt>
+              <dd>
+                {{
+                  active.assignedTo
+                    ? active.assignedTo.fullName + ' (' + active.assignedTo.email + ')'
+                    : 'En espera de técnico disponible'
+                }}
+              </dd>
+            </div>
+          </dl>
+
+          <div class="ow-issue-block">
+            <span class="ow-block-label">FALLA REPORTADA EN RECEPCIÓN</span>
+            <p class="ow-issue-text">{{ active.issueDesc }}</p>
+          </div>
+
+          @if (active.resolutionNotes) {
+            <div class="ow-issue-block ow-issue-block--highlight">
+              <span class="ow-block-label">INFORME DE REPARACIÓN REALIZADA</span>
+              <p class="ow-issue-text">{{ active.resolutionNotes }}</p>
+            </div>
+          }
+
+          @if (active.cancellationReason) {
+            <div class="ow-issue-block ow-issue-block--highlight">
+              <span class="ow-block-label">MOTIVO DE CANCELACIÓN</span>
+              <p class="ow-issue-text">{{ active.cancellationReason }}</p>
+            </div>
+          }
+
+          <!-- Dynamic State Transition Form -->
+          @if (availableTransitions().length > 0) {
+            <form
+              class="ow-transition-box"
+              [formGroup]="transitionForm"
+              (ngSubmit)="onSubmitStatusTransition()"
+              novalidate
+            >
+              <fieldset class="nf-fieldset">
+                <legend class="nf-label">
+                  Actualizar Estado de la Orden
+                </legend>
+
+                <div class="nf-preset-grid">
+                  @for (opt of availableTransitions(); track opt.status) {
+                    <label
+                      class="nf-preset-option"
+                      [class.nf-preset-option--selected]="selectedTransition() === opt.status"
+                    >
+                      <div class="nf-preset-option__top">
+                        <span class="nf-preset-option__title">{{ opt.label }}</span>
+                        <input
+                          type="radio"
+                          name="targetStatusTransition"
+                          [value]="opt.status"
+                          [checked]="selectedTransition() === opt.status"
+                          (change)="onSelectTransitionStatus(opt.status)"
+                        />
+                      </div>
+                    </label>
+                  }
+                </div>
+
+                @if (selectedTransition() === 'READY') {
+                  <div class="nf-field">
+                    <div class="nf-label-row">
+                      <label class="nf-label" for="ow-resolution-notes">
+                        Informe Técnico de Reparación Realizada (Obligatorio)
+                      </label>
+                      <span class="nf-required-badge">MÍN. 5 CARACTERES</span>
+                    </div>
+                    <div
+                      class="nf-input-group"
+                      [class.nf-input-group--invalid]="isTransitionNotesInvalid()"
+                    >
+                      <textarea
+                        id="ow-resolution-notes"
+                        name="resolutionNotes"
+                        rows="3"
+                        class="nf-input ow-textarea"
+                        formControlName="resolutionNotes"
+                        placeholder="Describe detalladamente la reparación efectuada, repuestos y pruebas superadas..."
+                        maxlength="1000"
+                      ></textarea>
+                    </div>
+                    @if (isTransitionNotesInvalid()) {
+                      <span class="nf-field-error">
+                        <app-icon name="alert" [size]="13" />
+                        <span>
+                          Es obligatorio detallar lo realizado en el equipo (mín. 5 caracteres).
+                        </span>
+                      </span>
+                    }
+                  </div>
+                }
+
+                @if (selectedTransition() === 'CANCELLED') {
+                  <div class="nf-field">
+                    <div class="nf-label-row">
+                      <label class="nf-label" for="ow-cancellation-reason">
+                        Motivo de Cancelación o Irreparabilidad (Obligatorio)
+                      </label>
+                      <span class="nf-required-badge">MÍN. 5 CARACTERES</span>
+                    </div>
+                    <div
+                      class="nf-input-group"
+                      [class.nf-input-group--invalid]="isTransitionNotesInvalid()"
+                    >
+                      <textarea
+                        id="ow-cancellation-reason"
+                        name="cancellationReason"
+                        rows="3"
+                        class="nf-input ow-textarea"
+                        formControlName="cancellationReason"
+                        placeholder="Explica el motivo técnico o decisión del cliente por el cual se cancela la orden..."
+                        maxlength="1000"
+                      ></textarea>
+                    </div>
+                    @if (isTransitionNotesInvalid()) {
+                      <span class="nf-field-error">
+                        <app-icon name="alert" [size]="13" />
+                        <span>
+                          Es obligatorio indicar el motivo de cancelación (mín. 5 caracteres).
+                        </span>
+                      </span>
+                    }
+                  </div>
+                }
+
+                <div class="nf-field">
+                  <div class="nf-label-row">
+                    <label class="nf-label" for="ow-status-comment">
+                      Observación Adicional para Bitácora (Opcional)
+                    </label>
+                    <span class="nf-required-badge">OPCIONAL</span>
+                  </div>
+                  <div class="nf-input-group">
+                    <input
+                      id="ow-status-comment"
+                      name="comment"
+                      type="text"
+                      class="nf-input"
+                      formControlName="comment"
+                      placeholder="Nota breve para el historial auditable..."
+                      maxlength="1000"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <button
+                type="submit"
+                class="nf-btn nf-btn--primary"
+                [disabled]="isUpdatingStatus()"
+              >
+                @if (isUpdatingStatus()) {
+                  <span>Guardando cambio...</span>
+                } @else {
+                  <app-icon name="check" [size]="15" />
+                  <span>Guardar Cambio de Estado</span>
+                }
+              </button>
+            </form>
+          }
+
+          <!-- Chronological Audit History Timeline -->
+          <div class="ow-history-section">
+            <span class="ow-block-label">
+              HISTORIAL DE AVANCES ({{ active.statusHistory.length }})
+            </span>
+
+            <ol class="nf-timeline">
+              @for (entry of active.statusHistory; track entry.id) {
+                <li class="nf-timeline__entry">
+                  <div class="nf-timeline__meta">
+                    <span class="nf-timeline__transition">
+                      {{
+                        entry.previousStatus
+                          ? getStatusLabel(entry.previousStatus) + ' → '
+                          : 'INGRESO → '
+                      }}{{ getStatusLabel(entry.newStatus) }}
+                    </span>
+                    <span>{{ entry.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+                  </div>
+                  <span class="nf-timeline__comment">
+                    Responsable: <strong>{{ entry.changedByFullName }}</strong>
+                    @if (entry.comment) {
+                      — "{{ entry.comment }}"
+                    }
+                  </span>
+                </li>
+              }
+            </ol>
+          </div>
+        </aside>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Native Modal Dialog (<dialog>) for Order Void -->
+<dialog
+  #deleteOrderDialog
+  class="nf-dialog"
+  aria-labelledby="delete-order-dialog-title"
+  (close)="onDeleteDialogClose($event)"
+>
+  @if (pendingDeleteOrder(); as target) {
+    <header class="nf-dialog__header">
+      <h2 id="delete-order-dialog-title" class="nf-dialog__title">
+        Confirmar Anulación de Orden
+      </h2>
+    </header>
+
+    <div class="nf-dialog__body">
+      <p>
+        Vas a anular la orden <strong>#{{ target.ticketCode }}</strong> ({{ target.deviceModel }} —
+        {{ target.clientName }}).
+      </p>
+      <p>
+        Si la orden tenía un técnico asignado (<strong>{{
+          target.assignedTo?.fullName ?? 'En espera'
+        }}</strong
+        >), este quedará disponible de inmediato para atender el siguiente equipo pendiente.
+      </p>
+    </div>
+
+    <form method="dialog" class="nf-dialog__footer">
+      <button type="submit" value="cancel" class="nf-btn nf-btn--ghost" autofocus>
+        <span>Cancelar</span>
+      </button>
+      <button type="submit" value="confirm-delete" class="nf-btn nf-btn--primary">
+        <app-icon name="trash" [size]="14" />
+        <span>Confirmar Anulación</span>
+      </button>
+    </form>
+  }
+</dialog>

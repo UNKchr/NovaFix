@@ -1,0 +1,187 @@
+<section class="nf-auth-section nf-enter" aria-labelledby="login-heading">
+  <div class="nf-container">
+    <div class="nf-auth-grid">
+      <!-- Left Context Column -->
+      <aside class="nf-auth-aside" aria-label="Información de acceso">
+        <div class="login-aside__top">
+          <span class="nf-mono-tag">
+            <app-icon name="lock" [size]="13" />
+            <span>ACCESO DE PERSONAL</span>
+          </span>
+
+          <h1 id="login-heading" class="login-aside__title">
+            Bienvenido a NovaFix.
+          </h1>
+
+          <p class="login-aside__desc">
+            Ingresa con tu cuenta de trabajo para registrar equipos en recepción, actualizar
+            diagnósticos en el laboratorio o supervisar las órdenes de tu área.
+          </p>
+        </div>
+
+        <dl class="login-specs">
+          <div class="login-specs__row">
+            <dt>Recepción</dt>
+            <dd>Registro de ingresos y entrega de equipos a clientes</dd>
+          </div>
+          <div class="login-specs__row">
+            <dt>Laboratorio Técnico</dt>
+            <dd>Diagnóstico, reparación e informes de servicio</dd>
+          </div>
+          <div class="login-specs__row">
+            <dt>Administración</dt>
+            <dd>Gestión de áreas de trabajo y personal</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <!-- Right Form Panel -->
+      <div class="nf-auth-panel">
+        <header class="login-panel__header">
+          <span class="login-panel__kicker">INICIO DE SESIÓN</span>
+          <h2 class="login-panel__title">Ingresa a tu espacio de trabajo</h2>
+        </header>
+
+        <div aria-live="polite" aria-atomic="true">
+          @if (serverErrorMessage(); as errorMsg) {
+            <div class="nf-alert nf-enter" role="alert">
+              <app-icon name="alert" [size]="18" />
+              <span>{{ errorMsg }}</span>
+            </div>
+          }
+        </div>
+
+        <form
+          class="nf-form"
+          method="post"
+          action="/api/auth/login"
+          [formGroup]="loginForm"
+          (ngSubmit)="onSubmit()"
+          novalidate
+        >
+          <fieldset class="nf-fieldset">
+            <legend class="visually-hidden">Credenciales de inicio de sesión</legend>
+
+            <!-- Corporate Email Field -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="login-email">Correo Electrónico</label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('email')"
+              >
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  class="nf-input"
+                  formControlName="email"
+                  placeholder="operador@empresa.com"
+                  autocomplete="username"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  maxlength="150"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('email')"
+                  aria-describedby="login-email-hint login-email-error"
+                  (input)="onFieldInput()"
+                />
+              </div>
+
+              <span id="login-email-hint" class="nf-field-hint">
+                Usa el correo asignado por el Administrador de tu empresa.
+              </span>
+
+              @if (getEmailErrorMessage(); as emailErr) {
+                <span id="login-email-error" class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>{{ emailErr }}</span>
+                </span>
+              }
+            </div>
+
+            <!-- Password Field -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="login-password">Contraseña</label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('password')"
+              >
+                <input
+                  id="login-password"
+                  name="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="nf-input"
+                  formControlName="password"
+                  placeholder="••••••••••••"
+                  autocomplete="current-password"
+                  enterkeyhint="done"
+                  maxlength="128"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('password')"
+                  aria-describedby="login-password-error"
+                  (input)="onFieldInput()"
+                />
+
+                <button
+                  type="button"
+                  class="nf-password-toggle"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-pressed]="showPassword()"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  aria-describedby="login-toggle-warning"
+                >
+                  <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16" />
+                </button>
+                <span id="login-toggle-warning" class="visually-hidden">
+                  Advertencia: esto mostrará tu contraseña en la pantalla.
+                </span>
+              </div>
+
+              @if (getPasswordErrorMessage(); as passwordErr) {
+                <span id="login-password-error" class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>{{ passwordErr }}</span>
+                </span>
+              }
+            </div>
+          </fieldset>
+
+          <div class="login-actions">
+            <button
+              type="submit"
+              class="nf-btn nf-btn--primary login-submit-btn"
+              [disabled]="isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span>Iniciando sesión...</span>
+              } @else {
+                <span>Iniciar Sesión</span>
+                <app-icon name="arrow-right" [size]="16" />
+              }
+            </button>
+          </div>
+        </form>
+
+        <footer class="login-panel__footer">
+          <span class="login-panel__switch-text">
+            ¿Tu taller o empresa aún no está registrada en NovaFix?
+          </span>
+          <a routerLink="/register-company" class="nf-btn nf-btn--ghost">
+            <app-icon name="building" [size]="15" />
+            <span>Registrar Nueva Empresa</span>
+          </a>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>

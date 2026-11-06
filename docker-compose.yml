@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: novafix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-novafix_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-novafix_local_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-novafix_db}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - novafix_pgdata:/var/lib/postgresql
+    networks:
+      - novafix-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-novafix_user} -d $${POSTGRES_DB:-novafix_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:alpine
+    container_name: novafix-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - novafix_redisdata:/data
+    networks:
+      - novafix-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+
+volumes:
+  novafix_pgdata:
+    name: novafix_pgdata
+  novafix_redisdata:
+    name: novafix_redisdata
+
+networks:
+  novafix-net:
+    name: novafix-net
+    driver: bridge

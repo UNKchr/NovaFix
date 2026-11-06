@@ -1,0 +1,136 @@
+# ==============================================================================
+# NOVAFIX MONOREPO - CONFIGURACIÓN MAESTRA DE GITIGNORE
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. VARIABLES DE ENTORNO, SECRETOS Y CERTIFICADOS (CRÍTICO - NUNCA VERSIONAR)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+!.env.example
+!*.env.example
+
+# Claves privadas, certificados TLS y almacenes de credenciales
+*.pem
+*.key
+*.crt
+*.cert
+*.csr
+*.p12
+*.pfx
+secrets/
+.secrets/
+
+# ------------------------------------------------------------------------------
+# 2. BASES DE DATOS LOCALES, VOLCADOS Y PERSISTENCIA DOCKER
+# ------------------------------------------------------------------------------
+*.sql.gz
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+dump.rdb
+appendonly.aof*
+appendonlydir/
+pgdata/
+postgres-data/
+redis-data/
+.docker/
+
+# ------------------------------------------------------------------------------
+# 3. DEPENDENCIAS Y LOCKFILES SECUNDARIOS DEL MONOREPO
+# ------------------------------------------------------------------------------
+node_modules/
+.pnpm-store/
+.pnp.*
+.yarn/
+package-lock.json
+yarn.lock
+
+# En un workspace pnpm solo se versiona el pnpm-lock.yaml de la raíz
+backend/pnpm-lock.yaml
+frontend/pnpm-lock.yaml
+
+# ------------------------------------------------------------------------------
+# 4. ARTEFACTOS DE COMPILACIÓN, CACHÉ Y TESTS
+# ------------------------------------------------------------------------------
+dist/
+build/
+out/
+out-tsc/
+bazel-out/
+.angular/
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+*.tsbuildinfo
+coverage/
+.nyc_output/
+__screenshots__/
+tmp/
+temp/
+
+# ------------------------------------------------------------------------------
+# 5. CLIENTE AUTOGENERADO DE PRISMA ORM v7
+# ------------------------------------------------------------------------------
+backend/src/generated/prisma/
+/src/generated/prisma/
+**/src/generated/prisma/
+
+# ------------------------------------------------------------------------------
+# 6. HERRAMIENTAS DE AGENTES IA Y METADATOS LOCALES
+# ------------------------------------------------------------------------------
+.agents/
+.agent/
+.gemini/
+.claude/
+.cursor/
+skills-lock.json
+
+# ------------------------------------------------------------------------------
+# 7. LOGS Y DIAGNÓSTICOS DE EJECUCIÓN
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ------------------------------------------------------------------------------
+# 8. ARCHIVOS DE SISTEMA OPERATIVO E IDEs
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+.idea/
+*.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+.history/
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+*~
+*.swp
+*.swo
+*.tmp

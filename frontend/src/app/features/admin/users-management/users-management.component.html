@@ -1,0 +1,548 @@
+<section class="nf-section nf-enter" aria-labelledby="users-heading">
+  <div class="nf-container">
+    <!-- Top Header -->
+    <header class="users-header">
+      <div class="users-header__title-group">
+        <span class="nf-mono-tag">
+          <app-icon name="user" [size]="13" />
+          <span>ADMINISTRACIÓN DE EMPRESA · EQUIPO DE TRABAJO</span>
+        </span>
+        <h1 id="users-heading" class="users-header__title">
+          Gestión de Personal y Permisos
+        </h1>
+        <p class="users-header__lead">
+          Administra recepcionistas, técnicos de laboratorio y supervisores de área. Si das de baja
+          a un técnico con órdenes pendientes, estas se reasignan automáticamente a otro compañero
+          disponible.
+        </p>
+      </div>
+
+      <div class="users-header__actions">
+        <button
+          type="button"
+          class="nf-btn nf-btn--ghost"
+          (click)="reloadDirectory()"
+          [disabled]="usersService.isLoading()"
+        >
+          <app-icon name="refresh" [size]="15" />
+          <span>Actualizar</span>
+        </button>
+
+        @if (canManageUsers()) {
+          <button
+            type="button"
+            class="nf-btn nf-btn--primary"
+            (click)="openCreateUserForm()"
+          >
+            <app-icon name="plus" [size]="15" />
+            <span>Crear Nuevo Usuario</span>
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Summary Telemetry Strip -->
+    <div class="users-metrics" role="region" aria-label="Métricas de personal">
+      <div class="users-metrics__cell">
+        <span class="users-metrics__label">TOTAL REGISTRADOS</span>
+        <span class="users-metrics__value">{{ usersService.users().length }}</span>
+      </div>
+      <div class="users-metrics__cell">
+        <span class="users-metrics__label">CUENTAS ACTIVAS</span>
+        <span class="users-metrics__value">{{ usersService.activeUsersCount() }}</span>
+      </div>
+      <div class="users-metrics__cell">
+        <span class="users-metrics__label">TÉCNICOS DISPONIBLES</span>
+        <span class="users-metrics__value">{{
+          usersService.availableTechniciansCount()
+        }}</span>
+      </div>
+    </div>
+
+    <!-- Feedback & Error Alerts -->
+    <div aria-live="polite" aria-atomic="true">
+      @if (feedbackMessage(); as msg) {
+        <div class="nf-alert nf-enter users-alert">
+          <app-icon name="check" [size]="16" />
+          <span>{{ msg }}</span>
+        </div>
+      }
+      @if (errorMessage(); as err) {
+        <div class="nf-alert nf-enter users-alert" role="alert">
+          <app-icon name="alert" [size]="16" />
+          <span>{{ err }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Create / Edit User Architectural Form Panel -->
+    @if (isFormOpen() && canManageUsers()) {
+      <section
+        class="nf-card users-form-panel nf-enter"
+        aria-labelledby="user-form-title"
+      >
+        <header class="users-form-panel__header">
+          <div>
+            <span class="users-form-panel__kicker">
+              {{
+                editingUser()
+                  ? 'EDICIÓN DE DATOS Y PERMISOS'
+                  : 'NUEVO INTEGRANTE DEL EQUIPO'
+              }}
+            </span>
+            <h2 id="user-form-title" class="users-form-panel__title">
+              {{
+                editingUser()
+                  ? 'Modificar Usuario: ' + editingUser()!.fullName
+                  : 'Registrar Nuevo Usuario'
+              }}
+            </h2>
+          </div>
+
+          <button type="button" class="nf-btn nf-btn--ghost" (click)="closeForm()">
+            <app-icon name="x" [size]="14" />
+            <span>Cerrar</span>
+          </button>
+        </header>
+
+        <form
+          class="nf-form"
+          method="post"
+          [formGroup]="userForm"
+          (ngSubmit)="onSubmitUser()"
+          novalidate
+        >
+          <div class="users-form-grid">
+            <!-- Full Name -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="user-fullname-input">Nombre Completo</label>
+                <span class="nf-required-badge">2–100 CARACTERES</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('fullName')"
+              >
+                <input
+                  id="user-fullname-input"
+                  name="fullName"
+                  type="text"
+                  class="nf-input"
+                  formControlName="fullName"
+                  placeholder="Ej. Ing. Mateo Vásquez"
+                  autocomplete="off"
+                  maxlength="100"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('fullName')"
+                />
+              </div>
+              @if (isFieldInvalid('fullName')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Ingresa un nombre válido (2 a 100 caracteres sin símbolos &lt; &gt;).</span>
+                </span>
+              }
+            </div>
+
+            <!-- Corporate Email -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="user-email-input">Correo Electrónico</label>
+                <span class="nf-required-badge">
+                  {{ editingUser() ? 'IDENTIFICADOR FIJO' : 'REQUERIDO' }}
+                </span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('email')"
+              >
+                <input
+                  id="user-email-input"
+                  name="email"
+                  type="email"
+                  class="nf-input"
+                  formControlName="email"
+                  placeholder="operador@tuempresa.com"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  maxlength="150"
+                  required
+                  [attr.aria-invalid]="isFieldInvalid('email')"
+                />
+              </div>
+              @if (isFieldInvalid('email')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Ingresa un formato de correo corporativo válido.</span>
+                </span>
+              }
+            </div>
+
+            <!-- Assigned Area (Select when 6+ or dynamic list from backend) -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="user-area-select">Área Operativa Asignada</label>
+                <span class="nf-required-badge">REQUERIDO</span>
+              </div>
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('areaId')"
+              >
+                <select
+                  id="user-area-select"
+                  name="areaId"
+                  class="nf-input users-select"
+                  formControlName="areaId"
+                  (change)="onAreaChange($event)"
+                  [attr.aria-invalid]="isFieldInvalid('areaId')"
+                >
+                  @for (area of areasService.areas(); track area.id) {
+                    <option [value]="area.id">
+                      {{ area.name }} ({{
+                        area.isTechnicalQueue ? 'Laboratorio Técnico' : 'Recepción'
+                      }})
+                    </option>
+                  }
+                </select>
+              </div>
+              @if (isFieldInvalid('areaId')) {
+                <span class="nf-field-error">
+                  <app-icon name="alert" [size]="13" />
+                  <span>Selecciona un área operativa válida.</span>
+                </span>
+              }
+            </div>
+
+            <!-- Password + CSPRNG Generator -->
+            <div class="nf-field">
+              <div class="nf-label-row">
+                <label class="nf-label" for="user-password-input">
+                  {{ editingUser() ? 'Rotar Contraseña (Opcional)' : 'Contraseña Inicial' }}
+                </label>
+                <button
+                  type="button"
+                  class="users-keygen-btn"
+                  (click)="generateSecurePassword()"
+                >
+                  <app-icon name="key" [size]="12" />
+                  <span>Generar Segura (16 chars)</span>
+                </button>
+              </div>
+
+              <div
+                class="nf-input-group"
+                [class.nf-input-group--invalid]="isFieldInvalid('password')"
+              >
+                <input
+                  id="user-password-input"
+                  name="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="nf-input"
+                  formControlName="password"
+                  [placeholder]="
+                    editingUser()
+                      ? 'Dejar vacío para conservar la contraseña actual'
+                      : 'Mín. 8 caracteres con letras y números'
+                  "
+                  autocomplete="new-password"
+                  maxlength="72"
+                  (input)="onPasswordInput()"
+                  [attr.aria-invalid]="isFieldInvalid('password')"
+                  aria-describedby="user-password-hint"
+                />
+
+                <button
+                  type="button"
+                  class="nf-password-toggle"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-pressed]="showPassword()"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16" />
+                </button>
+              </div>
+
+              <span id="user-password-hint" class="nf-field-hint">
+                @if (rawPasswordSignal().length > 0) {
+                  Longitud: {{ passwordChecklist().minLengthMet ? '[✓]' : '[ ]' }} · Letra:
+                  {{ passwordChecklist().hasLetter ? '[✓]' : '[ ]' }} · Número:
+                  {{ passwordChecklist().hasNumber ? '[✓]' : '[ ]' }}
+                } @else {
+                  Debe tener al menos 8 caracteres, incluyendo letras y números.
+                }
+              </span>
+            </div>
+          </div>
+
+          <!-- Account Active Toggle when editing -->
+          @if (editingUser()) {
+            <label class="nf-perm-item users-active-toggle">
+              <input type="checkbox" formControlName="isActive" />
+              <div class="nf-perm-item__text">
+                <span class="nf-perm-item__label">Cuenta Habilitada para Operar</span>
+                <span class="nf-perm-item__code">
+                  Si se desmarca, el usuario no podrá iniciar sesión y su sesión actual se cerrará de
+                  inmediato.
+                </span>
+              </div>
+            </label>
+          }
+
+          <!-- User Permission Preset (5 Exclusive Options -> Radio) -->
+          <fieldset class="nf-fieldset">
+            <legend class="nf-label">Rol / Plantilla de Permisos del Usuario (Preset)</legend>
+            <div class="nf-preset-grid">
+              @for (item of presetCatalog; track item.preset) {
+                <label
+                  class="nf-preset-option"
+                  [class.nf-preset-option--selected]="selectedPresetSignal() === item.preset"
+                >
+                  <div class="nf-preset-option__top">
+                    <span class="nf-preset-option__title">{{ item.label }}</span>
+                    <input
+                      type="radio"
+                      name="userPermissionPreset"
+                      [value]="item.preset"
+                      [checked]="selectedPresetSignal() === item.preset"
+                      (change)="onPresetSelect(item.preset)"
+                    />
+                  </div>
+                  <span class="nf-preset-option__summary">{{ item.summary }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <!-- Granular Permissions Matrix + Live Effective Union -->
+          <fieldset class="nf-fieldset">
+            <legend class="nf-label">
+              Matriz de Permisos Efectivos Resultantes ({{
+                effectivePreviewPermissions().length
+              }}/12)
+            </legend>
+            <div class="nf-perm-grid">
+              @for (perm of permissionCatalog; track perm.code) {
+                <label
+                  class="nf-perm-item"
+                  [class.nf-perm-item--active]="
+                    effectivePreviewPermissions().includes(perm.code)
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="
+                      isInheritedPermission(perm.code) || isCustomPermissionChecked(perm.code)
+                    "
+                    [disabled]="isInheritedPermission(perm.code)"
+                    (change)="toggleCustomPermission(perm.code, $event)"
+                  />
+                  <div class="nf-perm-item__text">
+                    <span class="nf-perm-item__label">
+                      {{ perm.label }}
+                      @if (isInheritedPermission(perm.code)) {
+                        <span class="users-inherited-tag">[HEREDADO]</span>
+                      }
+                    </span>
+                    <span class="nf-perm-item__code">{{ perm.description }}</span>
+                  </div>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <div class="users-form-actions">
+            <button type="button" class="nf-btn nf-btn--ghost" (click)="closeForm()">
+              <span>Cancelar</span>
+            </button>
+            <button
+              type="submit"
+              class="nf-btn nf-btn--primary"
+              [disabled]="isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span>Procesando...</span>
+              } @else {
+                <app-icon name="check" [size]="15" />
+                <span>{{
+                  editingUser() ? 'Guardar y Sincronizar Permisos' : 'Crear Operador'
+                }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Responsive Data Table (@container + Sticky Headers) -->
+    <div
+      tabindex="0"
+      role="region"
+      aria-labelledby="users-table-caption"
+      class="nf-table-region nf-enter"
+    >
+      <table class="nf-table">
+        <caption id="users-table-caption" class="visually-hidden">
+          Directorio de personal de la empresa, sus áreas asignadas, permisos y disponibilidad
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Integrante</th>
+            <th scope="col">Área Asignada</th>
+            <th scope="col">Rol y Permisos</th>
+            <th scope="col">Disponibilidad</th>
+            <th scope="col">Cuenta</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (operator of usersService.users(); track operator.id) {
+            <tr>
+              <th scope="row">
+                <div class="users-cell-identity">
+                  <span class="users-cell-identity__name">{{ operator.fullName }}</span>
+                  <span class="users-cell-identity__email">{{ operator.email }}</span>
+                </div>
+              </th>
+
+              <td>
+                <div class="users-cell-stack">
+                  <span>{{ operator.areaName ?? 'Administración General' }}</span>
+                  <span class="users-cell-sub">
+                    {{
+                      operator.isCompanyAdmin
+                        ? 'ADMINISTRADOR'
+                        : operator.isTechnicalArea
+                          ? 'LABORATORIO TÉCNICO'
+                          : 'RECEPCIÓN'
+                    }}
+                  </span>
+                </div>
+              </td>
+
+              <td>
+                <div class="users-cell-stack">
+                  <span>{{
+                    operator.isCompanyAdmin
+                      ? 'Administrador General'
+                      : getPresetLabel(operator.permissionPreset)
+                  }}</span>
+                  <span class="users-cell-sub">
+                    {{ operator.effectivePermissions.length }} permisos activos
+                  </span>
+                </div>
+              </td>
+
+              <td>
+                @if (operator.isTechnicalArea) {
+                  <span
+                    class="nf-mono-tag"
+                    [class.nf-mono-tag--inverted]="operator.isBusyWithActiveOrder"
+                  >
+                    <span>
+                      {{
+                        operator.isBusyWithActiveOrder
+                          ? 'OCUPADO (' + operator.activeAssignedOrdersCount + ' EN CURSO)'
+                          : 'DISPONIBLE'
+                      }}
+                    </span>
+                  </span>
+                } @else {
+                  <span class="users-cell-sub">No aplica</span>
+                }
+              </td>
+
+              <td>
+                <span
+                  class="nf-mono-tag"
+                  [class.nf-mono-tag--inverted]="operator.isActive"
+                >
+                  <span>{{ operator.isActive ? 'ACTIVO' : 'SUSPENDIDO' }}</span>
+                </span>
+              </td>
+
+              <td>
+                @if (canManageUsers() && !operator.isCompanyAdmin) {
+                  <div class="users-row-actions">
+                    <button
+                      type="button"
+                      class="nf-btn nf-btn--ghost users-action-btn"
+                      (click)="openEditUserForm(operator)"
+                      [attr.aria-label]="'Editar usuario ' + operator.fullName"
+                    >
+                      <app-icon name="edit" [size]="14" />
+                      <span>Editar</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="nf-btn nf-btn--ghost users-action-btn"
+                      (click)="promptDeleteUser(operator)"
+                      [attr.aria-label]="'Dar de baja a ' + operator.fullName"
+                    >
+                      <app-icon name="trash" [size]="14" />
+                      <span>Baja</span>
+                    </button>
+                  </div>
+                } @else {
+                  <span class="users-cell-sub">Protegido</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Native Modal Dialog (<dialog>) for Safe Anti-Corruption User Soft-Delete -->
+<dialog
+  #deleteUserDialog
+  class="nf-dialog"
+  aria-labelledby="delete-user-dialog-title"
+  (close)="onDeleteDialogClose($event)"
+>
+  @if (pendingDeleteUser(); as target) {
+    <header class="nf-dialog__header">
+      <h2 id="delete-user-dialog-title" class="nf-dialog__title">
+        Confirmar Baja Segura de Personal
+      </h2>
+    </header>
+
+    <div class="nf-dialog__body">
+      <p>
+        Vas a dar de baja al operador <strong>{{ target.fullName }}</strong> ({{ target.email }}).
+      </p>
+
+      @if (target.activeAssignedOrdersCount > 0) {
+        <div class="nf-alert">
+          <app-icon name="alert" [size]="18" />
+          <span>
+            Este técnico tiene
+            <strong>{{ target.activeAssignedOrdersCount }} orden(es) activa(s)</strong> en curso. Al
+            confirmar su baja, el sistema las reasignará automáticamente a otro técnico disponible de
+            su laboratorio o las colocará al inicio de la lista de espera conservando el avance
+            registrado.
+          </span>
+        </div>
+      } @else {
+        <p>
+          Su acceso al sistema se desactivará de inmediato y el historial de órdenes en las que
+          participó se conservará intacto.
+        </p>
+      }
+    </div>
+
+    <form method="dialog" class="nf-dialog__footer">
+      <button type="submit" value="cancel" class="nf-btn nf-btn--ghost" autofocus>
+        <span>Cancelar</span>
+      </button>
+      <button type="submit" value="confirm-delete" class="nf-btn nf-btn--primary">
+        <app-icon name="trash" [size]="14" />
+        <span>Confirmar Baja y Reasignar</span>
+      </button>
+    </form>
+  }
+</dialog>
