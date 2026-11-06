@@ -4,16 +4,18 @@ import {
   requireAnyPermission,
 } from "../../shared/middlewares/auth.middleware.js";
 import { cacheOrderByTicketMiddleware } from "../../shared/middlewares/cache.middleware.js";
+import { publicTrackingRateLimiter } from "../../shared/middlewares/ip-security.middleware.js";
 import { ordersController } from "./orders.controller.js";
 
 export const ordersRouter: Router = Router();
 
 /**
- * Endpoint público de consulta en vivo por ticketCode con Cache-Aside en Redis (TTL 300s).
- * No requiere inicio de sesión para permitir que el cliente final consulte su equipo en /tracking.
+ * Endpoint público de consulta en vivo por ticketCode con Rate Limit anti-enumeración
+ * y Cache-Aside en Redis (TTL 300s).
  */
 ordersRouter.get(
   "/public/:ticketCode",
+  publicTrackingRateLimiter,
   cacheOrderByTicketMiddleware,
   (req, res, next) => ordersController.getPublicByTicketCode(req, res, next)
 );
@@ -38,10 +40,11 @@ ordersRouter.post(
 );
 
 /**
- * Consulta directa por ticketCode (con interceptor Cache-Aside en Redis).
+ * Consulta directa por ticketCode (con Rate Limit y Cache-Aside en Redis).
  */
 ordersRouter.get(
   "/:ticketCode",
+  publicTrackingRateLimiter,
   cacheOrderByTicketMiddleware,
   (req, res, next) => ordersController.getPublicByTicketCode(req, res, next)
 );

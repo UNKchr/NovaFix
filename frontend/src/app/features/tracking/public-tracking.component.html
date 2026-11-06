@@ -146,7 +146,7 @@
         <div class="trk-hero-card__top">
           <div class="trk-hero-card__badges">
             <span class="nf-mono-tag nf-mono-tag--inverted">{{ result.order.ticketCode }}</span>
-            <span class="nf-mono-tag">{{ statusLabel(result.order.status) }}</span>
+            <span class="nf-mono-tag">{{ orderBannerStatusLabel(result.order) }}</span>
             <span class="nf-mono-tag">{{ priorityLabel(result.order.priority) }}</span>
           </div>
 
@@ -182,6 +182,9 @@
                     }
                     @case ('ACTIVE') {
                       ETAPA ACTUAL
+                    }
+                    @case ('SKIPPED') {
+                      NO APLICÓ
                     }
                     @default {
                       PENDIENTE
@@ -220,13 +223,25 @@
             </div>
             @if (result.order.completedAt) {
               <div class="ow-spec-cell">
-                <dt>Reparación Finalizada</dt>
+                <dt>
+                  {{
+                    isCancelledOrder(result.order)
+                      ? 'Fecha de Cancelación'
+                      : 'Reparación Finalizada'
+                  }}
+                </dt>
                 <dd>{{ result.order.completedAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
               </div>
             }
             @if (result.order.deliveredAt) {
               <div class="ow-spec-cell">
-                <dt>Entregado al Cliente</dt>
+                <dt>
+                  {{
+                    isCancelledOrder(result.order)
+                      ? 'Devuelto al Cliente'
+                      : 'Entregado al Cliente'
+                  }}
+                </dt>
                 <dd>{{ result.order.deliveredAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
               </div>
             }
@@ -264,7 +279,7 @@
               <div class="nf-timeline__entry">
                 <div class="nf-timeline__meta">
                   <span class="nf-timeline__transition">
-                    {{ statusLabel(item.status) }}
+                    {{ timelineStatusLabel(result.order, item.status) }}
                   </span>
                   <span>{{ item.timestamp | date: 'dd/MM/yyyy HH:mm' }}</span>
                 </div>

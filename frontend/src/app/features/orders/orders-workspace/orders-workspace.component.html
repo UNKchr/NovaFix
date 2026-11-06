@@ -412,7 +412,7 @@
                     order.status === 'READY' || order.status === 'IN_REPAIR'
                   "
                 >
-                  <span>{{ getStatusLabel(order.status) }}</span>
+                  <span>{{ getOrderDisplayStatusLabel(order) }}</span>
                 </span>
               </div>
 
@@ -464,7 +464,7 @@
 
             <div class="ow-inspector__header-actions">
               <span class="nf-mono-tag nf-mono-tag--inverted">
-                <span>{{ getStatusLabel(active.status) }}</span>
+                <span>{{ getOrderDisplayStatusLabel(active) }}</span>
               </span>
 
               <a

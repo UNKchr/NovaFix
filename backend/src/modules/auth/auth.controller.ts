@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { getAuthenticatedUser } from "../../shared/middlewares/auth.middleware.js";
+import { ipSecurityService } from "../../shared/security/ip-security.service.js";
 import {
   buildSuccessResponse,
   type ApiSuccessResponse,
@@ -41,7 +42,8 @@ export class AuthController {
   ): Promise<void> {
     try {
       const dto = validateLoginDto(req.body);
-      const session = await authService.login(dto);
+      const clientIp = ipSecurityService.extractClientIp(req);
+      const session = await authService.login(dto, clientIp);
 
       res
         .status(200)

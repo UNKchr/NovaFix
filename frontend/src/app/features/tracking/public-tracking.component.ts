@@ -19,6 +19,7 @@ import {
   ORDER_STATUS_LABELS,
   type OrderPriority,
   type OrderStatus,
+  type PublicOrderTrackingView,
   type PublicTrackingLookupResult,
 } from '../../core/models/order.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -30,7 +31,7 @@ import {
 } from '../../core/validators/security.validators';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
-export type LifecycleStageState = 'COMPLETED' | 'ACTIVE' | 'PENDING';
+export type LifecycleStageState = 'COMPLETED' | 'ACTIVE' | 'PENDING' | 'SKIPPED';
 
 export interface TrackingLifecycleStage {
   readonly index: string;
@@ -71,7 +72,60 @@ export class PublicTrackingComponent implements OnInit {
       return [];
     }
 
-    const status = result.order.status;
+    const order = result.order;
+    const status = order.status;
+    const isCancelledFlow = this.isCancelledOrder(order);
+
+    if (isCancelledFlow) {
+      const visitedStatuses = new Set<OrderStatus>(order.history.map((item) => item.status));
+      const wasAssignedToTech =
+        visitedStatuses.has('CREATED') ||
+        visitedStatuses.has('DIAGNOSING') ||
+        visitedStatuses.has('IN_REPAIR');
+      const wasDiagnosed =
+        visitedStatuses.has('DIAGNOSING') || visitedStatuses.has('IN_REPAIR');
+      const isAlreadyReturned = status === 'DELIVERED';
+
+      return [
+        {
+          index: '01',
+          title: 'INGRESO REGISTRADO',
+          subtitle: 'Recepción y apertura de ticket único',
+          state: 'COMPLETED',
+        },
+        {
+          index: '02',
+          title: wasAssignedToTech ? 'ASIGNADO A TALLER' : 'EN ESPERA DE TURNO',
+          subtitle: wasAssignedToTech
+            ? 'Asignada a laboratorio especializado'
+            : 'Cancelada antes de ingresar a taller',
+          state: wasAssignedToTech ? 'COMPLETED' : 'SKIPPED',
+        },
+        {
+          index: '03',
+          title: 'EN DIAGNÓSTICO',
+          subtitle: wasDiagnosed
+            ? 'Evaluación técnica previa a la cancelación'
+            : 'Sin intervención ni reparación aplicada',
+          state: wasDiagnosed ? 'COMPLETED' : 'SKIPPED',
+        },
+        {
+          index: '04',
+          title: 'ORDEN CANCELADA',
+          subtitle: 'Servicio cancelado con motivo registrado',
+          state: isAlreadyReturned ? 'COMPLETED' : 'ACTIVE',
+        },
+        {
+          index: '05',
+          title: isAlreadyReturned ? 'DEVUELTO AL CLIENTE' : 'LISTO PARA RETIRO',
+          subtitle: isAlreadyReturned
+            ? 'Equipo devuelto al titular sin reparación'
+            : 'Disponible en recepción para su devolución',
+          state: isAlreadyReturned ? 'COMPLETED' : 'PENDING',
+        },
+      ];
+    }
+
     const rankMap: Readonly<Record<OrderStatus, number>> = {
       ASSIGNING: 2,
       CREATED: 2,
@@ -98,18 +152,12 @@ export class PublicTrackingComponent implements OnInit {
     };
 
     const finalStageTitle =
-      status === 'CANCELLED'
-        ? 'ORDEN CANCELADA'
-        : status === 'DELIVERED'
-          ? 'ENTREGADA AL CLIENTE'
-          : 'LISTA PARA ENTREGA';
+      status === 'DELIVERED' ? 'ENTREGADA AL CLIENTE' : 'LISTA PARA ENTREGA';
 
     const finalStageSubtitle =
-      status === 'CANCELLED'
-        ? 'Cierre anticipado con motivo registrado'
-        : status === 'DELIVERED'
-          ? 'Orden finalizada y equipo retirado'
-          : 'Control de calidad y aviso de retiro';
+      status === 'DELIVERED'
+        ? 'Orden finalizada y equipo retirado'
+        : 'Control de calidad y aviso de retiro';
 
     return [
       {
@@ -237,6 +285,31 @@ export class PublicTrackingComponent implements OnInit {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  protected isCancelledOrder(order: PublicOrderTrackingView): boolean {
+    return (
+      order.status === 'CANCELLED' ||
+      order.cancellationReason !== null ||
+      order.history.some((item) => item.status === 'CANCELLED')
+    );
+  }
+
+  protected orderBannerStatusLabel(order: PublicOrderTrackingView): string {
+    if (order.status === 'DELIVERED' && this.isCancelledOrder(order)) {
+      return 'CANCELADA · DEVUELTA AL CLIENTE';
+    }
+    return ORDER_STATUS_LABELS[order.status];
+  }
+
+  protected timelineStatusLabel(
+    order: PublicOrderTrackingView,
+    status: OrderStatus,
+  ): string {
+    if (status === 'DELIVERED' && this.isCancelledOrder(order)) {
+      return 'DEVUELTA AL CLIENTE (SIN REPARACIÓN)';
+    }
+    return ORDER_STATUS_LABELS[status];
   }
 
   protected statusLabel(status: OrderStatus): string {

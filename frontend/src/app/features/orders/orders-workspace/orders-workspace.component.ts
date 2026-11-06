@@ -127,8 +127,13 @@ export class OrdersWorkspaceComponent implements OnInit {
     const query = this.searchQuery().trim().toUpperCase();
 
     return this.ordersService.orders().filter((order) => {
-      if (filter !== 'ALL' && order.status !== filter) {
-        return false;
+      if (filter !== 'ALL') {
+        const matchesCancelledHistory =
+          filter === 'CANCELLED' &&
+          (order.status === 'CANCELLED' || order.cancellationReason !== null);
+        if (order.status !== filter && !matchesCancelledHistory) {
+          return false;
+        }
       }
       if (!query) {
         return true;
@@ -174,7 +179,10 @@ export class OrdersWorkspaceComponent implements OnInit {
       if (canDeliver && this.authService.hasPermission('ORDER_STATUS_DELIVERED')) {
         options.push({
           status: 'DELIVERED',
-          label: 'Marcar como Entregada al Cliente',
+          label:
+            order.status === 'CANCELLED'
+              ? 'Registrar Devolución del Equipo al Cliente'
+              : 'Marcar como Entregada al Cliente',
         });
       }
       return options;
@@ -546,6 +554,13 @@ export class OrdersWorkspaceComponent implements OnInit {
 
   protected getStatusLabel(status: OrderStatus): string {
     return ORDER_STATUS_LABELS[status];
+  }
+
+  protected getOrderDisplayStatusLabel(order: InternalOrderView): string {
+    if (order.status === 'DELIVERED' && order.cancellationReason !== null) {
+      return 'CANCELADA · DEVUELTA';
+    }
+    return ORDER_STATUS_LABELS[order.status];
   }
 
   protected getPriorityLabel(priority: OrderPriority): string {

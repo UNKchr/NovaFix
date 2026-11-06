@@ -1,15 +1,16 @@
 import { randomInt } from "node:crypto";
 import { AppError } from "../../shared/errors/app-error.js";
 import {
+  revokeTokenOnLogout,
+  type AuthenticatedUserContext,
+} from "../../shared/middlewares/auth.middleware.js";
+import { ipSecurityService } from "../../shared/security/ip-security.service.js";
+import {
   hashPassword,
   signAuthToken,
   verifyPassword,
 } from "../../shared/utils/crypto.util.js";
 import { resolveEffectivePermissions } from "../../shared/utils/permissions.util.js";
-import {
-  revokeTokenOnLogout,
-  type AuthenticatedUserContext,
-} from "../../shared/middlewares/auth.middleware.js";
 import type {
   AuthenticatedSessionView,
   LoginDto,
@@ -92,7 +93,10 @@ export class AuthService {
     };
   }
 
-  public async login(dto: LoginDto): Promise<AuthenticatedSessionView> {
+  public async login(
+    dto: LoginDto,
+    clientIp?: string
+  ): Promise<AuthenticatedSessionView> {
     const dbUser = await authRepository.findUserByEmail(dto.email);
 
     // Mensaje uniforme ante usuario inexistente o contraseña incorrecta (evita User Enumeration)
@@ -102,6 +106,9 @@ export class AuthService {
       dbUser.deletedAt !== null ||
       !dbUser.company.isActive
     ) {
+      if (clientIp !== undefined) {
+        await ipSecurityService.recordFailedAuthAttempt(clientIp);
+      }
       throw new AppError({
         statusCode: 401,
         errorCode: "UNAUTHORIZED",
@@ -116,11 +123,18 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      if (clientIp !== undefined) {
+        await ipSecurityService.recordFailedAuthAttempt(clientIp);
+      }
       throw new AppError({
         statusCode: 401,
         errorCode: "UNAUTHORIZED",
         message: "Credenciales inválidas o cuenta inactiva.",
       });
+    }
+
+    if (clientIp !== undefined) {
+      await ipSecurityService.clearFailedAuthAttempts(clientIp);
     }
 
     const activeArea =
